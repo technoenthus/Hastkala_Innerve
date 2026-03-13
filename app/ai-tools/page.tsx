@@ -13,6 +13,27 @@ import {
 } from "lucide-react";
 import { mockStory, mockListing } from "@/lib/gemini";
 
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  onresult: (event: SpeechRecognitionEvent) => void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
+  }
+}
+
 // ─── Voice Story Tool ───────────────────────────────────────────
 function VoiceStoryTool() {
   const [transcript, setTranscript] = useState("");
@@ -25,8 +46,8 @@ function VoiceStoryTool() {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   function startRecording() {
-    const SpeechRecognition =
-      window.SpeechRecognition || (window as unknown as { webkitSpeechRecognition: typeof SpeechRecognition }).webkitSpeechRecognition;
+    if (typeof window === 'undefined') return;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Speech recognition not supported in this browser. Please type your description.");
       return;
