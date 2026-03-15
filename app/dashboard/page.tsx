@@ -16,6 +16,7 @@ import {
   Settings,
 } from "lucide-react";
 import { artisans, getProductsByArtisan } from "@/lib/data";
+import Navigation from "@/components/Navigation";
 
 const DEMO_ARTISAN = artisans[0]; // Meera Devi
 const DEMO_PRODUCTS = getProductsByArtisan(DEMO_ARTISAN.id);
@@ -37,6 +38,8 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
+    <>
+      <Navigation />
     <div className="pt-16 min-h-screen bg-cream flex">
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-60 bg-white border-r border-cream-dark fixed top-16 bottom-0 left-0 z-20">
@@ -359,5 +362,6 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

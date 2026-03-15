@@ -1,24 +1,23 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, Sparkles } from "lucide-react";
 
 const navLinks = [
   { href: "/explore", label: "Explore Crafts" },
   { href: "/artisans", label: "Artisans" },
-  { href: "/ai-tools", label: "AI Tools" },
+  //{ href: "/ai-tools", label: "AI Tools" },
   { href: "/about", label: "Our Mission" },
-  { href: "/tutorials", label: "Tutorials" },
 ];
 
-export default function Navigation() {
+export default function Gnav() {
   const [open, setOpen] = useState(false);
 
   return (
     <nav className="fixed top-0 inset-x-0 z-50 bg-cream/90 backdrop-blur-md border-b border-cream-dark">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/home" className="flex flex-col leading-none">
+        <Link href="/" className="flex flex-col leading-none">
           <span className="font-serif text-xl font-semibold text-indigo-deep tracking-wide">
             HASTAKALA
           </span>
@@ -43,11 +42,11 @@ export default function Navigation() {
         {/* CTA */}
         <div className="hidden md:flex items-center gap-3">
           <Link
-            href="/dashboard"
+            href="/auth"
             className="flex items-center gap-2 text-sm font-medium bg-indigo-deep text-cream px-4 py-2 rounded-full hover:bg-indigo-mid transition-colors"
           >
-            <User size={14} />
-            Profile
+            <Sparkles size={14} />
+            Artisan Portal
           </Link>
         </div>
 
@@ -75,12 +74,12 @@ export default function Navigation() {
             </Link>
           ))}
           <Link
-            href="/dashboard"
+            href="/auth"
             onClick={() => setOpen(false)}
             className="inline-flex items-center gap-2 text-sm font-medium bg-indigo-deep text-cream px-4 py-2 rounded-full mt-2"
           >
-            <User size={14} />
-            Profile
+            <Sparkles size={14} />
+            Artisan Portal
           </Link>
         </div>
       )}

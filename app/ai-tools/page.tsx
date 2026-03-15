@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { mockStory, mockListing } from "@/lib/gemini";
+import Navigation from "@/components/Navigation";
 
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
@@ -99,6 +100,8 @@ function VoiceStoryTool() {
   }
 
   return (
+    <>
+      <Navigation />
     <div className="space-y-6">
       <div className="grid sm:grid-cols-3 gap-4">
         {[
@@ -189,6 +192,7 @@ function VoiceStoryTool() {
         </div>
       )}
     </div>
+    </>
   );
 }
 

@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { products, artisans, categories, regions, craftTypes } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
+import Navigation from "@/components/Navigation";
 
 export default function ExplorePage() {
   const [search, setSearch] = useState("");
@@ -46,6 +47,8 @@ export default function ExplorePage() {
     maxPrice < 50000;
 
   return (
+    <>
+      <Navigation />
     <div className="pt-16 min-h-screen bg-cream">
       {/* Header */}
       <div className="bg-cream-warm border-b border-cream-dark">
@@ -226,5 +229,6 @@ export default function ExplorePage() {
         )}
       </div>
     </div>
+    </>
   );
 }

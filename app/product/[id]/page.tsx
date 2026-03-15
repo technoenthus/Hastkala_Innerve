@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { products, artisans, getProductById, getProductsByArtisan } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
+import Navigation from "@/components/Navigation";
 
 export async function generateStaticParams() {
   return products.map((p) => ({ id: p.id }));
@@ -28,6 +29,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   );
 
   return (
+    <>
+      <Navigation />
     <div className="pt-16 min-h-screen bg-cream">
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Breadcrumb */}
@@ -244,5 +247,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         )}
       </div>
     </div>
+    </>
   );
 }

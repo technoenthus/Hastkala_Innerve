@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Target, Zap, Globe, Heart } from "lucide-react";
+import Navigation from "@/components/Navigation";
 
 const IMPACT_STATS = [
   { value: "7M+", label: "Artisans in India", sub: "Most without digital access" },
@@ -34,6 +35,8 @@ const PRINCIPLES = [
 
 export default function AboutPage() {
   return (
+    <>
+      <Navigation />
     <div className="pt-16 min-h-screen bg-cream">
       {/* Hero */}
       <section className="relative overflow-hidden bg-indigo-deep text-cream py-24 px-6">
@@ -195,5 +198,6 @@ export default function AboutPage() {
         </div>
       </section>
     </div>
+    </>
   );
 }

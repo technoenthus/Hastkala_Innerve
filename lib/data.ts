@@ -36,6 +36,12 @@ export type Product = {
   process: string[];
 };
 
+export type Tutorial = {
+  title: string;
+  description: string;
+  link: string;
+};
+
 export const artisans: Artisan[] = [
   {
     id: "meera-devi",
@@ -107,6 +113,27 @@ export const artisans: Artisan[] = [
       "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=1200&h=600&fit=crop",
     tags: ["Dhokra", "Lost-Wax", "Tribal", "Bastar", "Bronze"],
     productIds: ["dhokra-elephant", "dhokra-goddess", "dhokra-tribal-horse"],
+  },
+];
+
+export const SKILL_TUTORIALS: Tutorial[] = [
+  {
+    title: "Introduction to Madhubani Painting",
+    description: "Learn traditional patterns and symbolism.",
+    link: "https://example.com",
+  },
+  {
+    title: "Pottery Basics",
+    description: "Clay preparation and shaping techniques.",
+    link: "https://example.com",
+  },
+];
+
+export const MARKETING_TUTORIALS: Tutorial[] = [
+  {
+    title: "Pricing Handmade Products",
+    description: "Fair pricing strategies for artisans.",
+    link: "https://example.com",
   },
 ];
 
