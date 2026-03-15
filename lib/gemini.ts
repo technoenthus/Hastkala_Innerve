@@ -258,6 +258,66 @@ Rules:
   return callGemini(prompt);
 }
 
+// --- Feature 5: Social Media Kit ---
+export async function generateSocialMediaKit(input: {
+  productTitle: string;
+  description: string;
+  craftType: string;
+  artisanName: string;
+  region: string;
+  price?: number;
+}): Promise<{
+  captions: { platform: string; caption: string; hashtags: string[] }[];
+}> {
+  const prompt = `
+You are a social media marketing expert for Indian artisan products.
+
+Generate 5 ready-to-post social media captions for this product.
+
+PRODUCT: ${input.productTitle}
+DESCRIPTION: ${input.description}
+CRAFT: ${input.craftType}
+ARTISAN: ${input.artisanName} from ${input.region}
+${input.price ? `PRICE: ₹${input.price}` : ""}
+
+Create 5 captions with different tones:
+1. Emotional/storytelling (Instagram)
+2. Educational/craft facts (Instagram)
+3. Behind-the-scenes/process (Facebook)
+4. Call-to-action/sale (Facebook)
+5. Cultural pride (Instagram Reels)
+
+Return exactly this JSON (raw JSON only):
+{
+  "captions": [
+    { "platform": "Instagram", "caption": "<caption text, 2-4 sentences>", "hashtags": ["<8-10 relevant hashtags without #>"] },
+    { "platform": "Instagram", "caption": "...", "hashtags": [...] },
+    { "platform": "Facebook", "caption": "...", "hashtags": [...] },
+    { "platform": "Facebook", "caption": "...", "hashtags": [...] },
+    { "platform": "Instagram Reels", "caption": "...", "hashtags": [...] }
+  ]
+}
+
+Rules: Be authentic, avoid generic phrases. Reference the specific craft, region, and artisan. Make buyers feel the human connection.
+`;
+
+  const raw = await callGemini(prompt);
+  try {
+    const cleaned = raw.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleaned);
+  } catch {
+    return {
+      captions: [
+        { platform: "Instagram", caption: `Every thread in this ${input.craftType} piece carries the memory of ${input.region}. ${input.artisanName} has spent decades perfecting this art so you can wear a piece of living history.`, hashtags: ["HandmadeInIndia", "ArtisanCraft", input.craftType.replace(" ", ""), "IndianHeritage", "SupportArtisans", "CraftRevival", "SlowFashion", "MadeWithLove"] },
+        { platform: "Instagram", caption: `Did you know? ${input.craftType} is a tradition passed down through generations in ${input.region}. Each piece takes hours of skilled handwork — no machines, no shortcuts.`, hashtags: ["CraftFacts", "IndianCraft", "Heritage", "Handmade", "ArtisanIndia", "TraditionalArt", "CulturalHeritage", "Authentic"] },
+        { platform: "Facebook", caption: `Behind every piece from our collection is a story. ${input.artisanName} from ${input.region} creates each ${input.craftType} work by hand, using techniques refined over a lifetime. This is what we mean when we say handmade.`, hashtags: ["BehindTheScenes", "ArtisanStory", "Handmade", "IndianCraft", "SupportLocal"] },
+        { platform: "Facebook", caption: `Own a piece of India's living heritage. "${input.productTitle}" by ${input.artisanName} — crafted with tradition, made for your home. Limited pieces available.`, hashtags: ["ShopNow", "IndianArt", "Handmade", "ArtisanMarketplace", "GiftIdeas"] },
+        { platform: "Instagram Reels", caption: `This is what 30 years of mastery looks like. ✨ ${input.artisanName}'s ${input.craftType} work from ${input.region} — where every line is a prayer.`, hashtags: ["ArtisanIndia", "CraftRevival", "IndianArt", "Handmade", "Viral", "ReelItFeelIt", "CulturalPride", "Heritage"] },
+      ],
+    };
+  }
+}
+
 // --- Mock mode for demo without API key ---
 export const mockStory = {
   story: `I am Meera. I learned to paint before I learned to write. My grandmother would wake before sunrise, mix her pigments from the plants that grew behind our house — the indigo vine, the turmeric root, the lamp-black from the kitchen — and by the time the sun reached the courtyard, the wall would already have gods in it.

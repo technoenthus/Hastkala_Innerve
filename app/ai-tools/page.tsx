@@ -596,12 +596,130 @@ Your purchase means Meera's granddaughter grows up watching her grandmother pain
   );
 }
 
+// ─── Social Media Kit Tool ───────────────────────────────────────
+const PLATFORM_COLORS: Record<string, string> = {
+  "Instagram": "bg-pink-50 border-pink-200 text-pink-700",
+  "Instagram Reels": "bg-purple-50 border-purple-200 text-purple-700",
+  "Facebook": "bg-blue-50 border-blue-200 text-blue-700",
+};
+
+function SocialMediaKitTool() {
+  const [form, setForm] = useState({
+    productTitle: "Sacred Fish Pair — Madhubani on Handmade Paper",
+    description: "A traditional Madhubani painting depicting the Matsya motif, symbol of fertility and good fortune in Mithila culture. Painted with natural pigments on handmade paper using a bamboo twig brush.",
+    craftType: "Madhubani",
+    artisanName: "Meera Devi",
+    region: "Mithila, Bihar",
+    price: "4800",
+  });
+  const [loading, setLoading] = useState(false);
+  const [captions, setCaptions] = useState<{ platform: string; caption: string; hashtags: string[] }[]>([]);
+  const [copied, setCopied] = useState<number | null>(null);
+
+  async function generate() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/social-media-kit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, price: form.price ? Number(form.price) : undefined }),
+      });
+      const data = await res.json();
+      if (data?.captions) setCaptions(data.captions);
+    } catch {
+      // network error — do nothing
+    }
+    setLoading(false);
+  }
+
+  function copyCaption(idx: number, caption: string, hashtags: string[]) {
+    const text = `${caption}\n\n${hashtags.map((h) => `#${h}`).join(" ")}`;
+    navigator.clipboard.writeText(text);
+    setCopied(idx);
+    setTimeout(() => setCopied(null), 2000);
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid sm:grid-cols-2 gap-4">
+        {([
+          { label: "Product Title", key: "productTitle", span: true },
+          { label: "Craft Type", key: "craftType" },
+          { label: "Artisan Name", key: "artisanName" },
+          { label: "Region", key: "region" },
+          { label: "Price (₹)", key: "price" },
+        ] as { label: string; key: string; span?: boolean }[]).map((f) => (
+          <div key={f.key} className={f.span ? "sm:col-span-2" : ""}>
+            <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">{f.label}</label>
+            <input
+              value={form[f.key as keyof typeof form]}
+              onChange={(e) => setForm((p) => ({ ...p, [f.key]: e.target.value }))}
+              className="w-full bg-white border border-cream-dark rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-soft"
+            />
+          </div>
+        ))}
+        <div className="sm:col-span-2">
+          <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">Product Description</label>
+          <textarea
+            rows={3}
+            value={form.description}
+            onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+            className="w-full bg-white border border-cream-dark rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-soft resize-none"
+          />
+        </div>
+      </div>
+
+      <button
+        onClick={generate}
+        disabled={loading}
+        className="flex items-center gap-2 bg-indigo-deep text-cream px-6 py-3 rounded-full font-medium hover:bg-indigo-mid transition-colors disabled:opacity-50"
+      >
+        {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+        {loading ? "Generating kit…" : "Generate Social Media Kit"}
+      </button>
+
+      {captions.length > 0 && (
+        <div className="space-y-4 border-t border-cream-dark pt-6">
+          <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
+            <CheckCircle size={16} /> 5 captions ready to post
+          </div>
+          {captions.map((c, i) => (
+            <div key={i} className="bg-white border border-cream-dark rounded-2xl p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${PLATFORM_COLORS[c.platform] ?? "bg-cream border-cream-dark text-ink"}` }>
+                  {c.platform}
+                </span>
+                <button
+                  onClick={() => copyCaption(i, c.caption, c.hashtags)}
+                  className="flex items-center gap-1.5 text-xs text-ink/50 hover:text-indigo-deep transition-colors"
+                >
+                  {copied === i ? <CheckCircle size={13} className="text-green-500" /> : <Upload size={13} />}
+                  {copied === i ? "Copied!" : "Copy"}
+                </button>
+              </div>
+              <p className="text-sm text-ink/80 leading-relaxed">{c.caption}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {c.hashtags.map((tag) => (
+                  <span key={tag} className="text-xs bg-indigo-deep/5 text-indigo-deep px-2.5 py-1 rounded-full font-medium">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────
 const TOOLS = [
   { id: "voice", icon: Mic, title: "Voice to Story", subtitle: "Record · Translate · Narrate", component: VoiceStoryTool, color: "text-terra", bg: "bg-terra/10" },
   { id: "photo", icon: Camera, title: "Photo to Listing", subtitle: "Upload · Analyze · Publish", component: PhotoListingTool, color: "text-indigo-soft", bg: "bg-indigo-mid/10" },
   { id: "price", icon: Calculator, title: "Fair Price Calculator", subtitle: "Input · Calculate · Price Fairly", component: FairPriceTool, color: "text-gold-dark", bg: "bg-gold/15" },
   { id: "story", icon: BookOpen, title: "Story Generator", subtitle: "Details · Craft · Connect", component: StoryGeneratorTool, color: "text-terra", bg: "bg-terra/10" },
+  { id: "social", icon: Sparkles, title: "Social Media Kit", subtitle: "Describe · Generate · Post", component: SocialMediaKitTool, color: "text-pink-500", bg: "bg-pink-50" },
 ];
 
 export default function AIToolsPage() {
