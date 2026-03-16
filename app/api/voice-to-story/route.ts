@@ -1,23 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateCraftStory, mockStory } from "@/lib/gemini";
+import { getCraftStory } from "@/lib/craft-stories-db";
 
 export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const { artisanName, craftType, region, voiceTranscript } = body;
+  const body = await req.json();
+  const { artisanName, craftType, region } = body;
 
-    if (!voiceTranscript) {
-      return NextResponse.json({ error: "voiceTranscript is required" }, { status: 400 });
-    }
-
-    try {
-      const result = await generateCraftStory({ artisanName, craftType, region, voiceTranscript });
-      return NextResponse.json(result);
-    } catch {
-      return NextResponse.json(mockStory);
-    }
-  } catch (err) {
-    console.error("voice-to-story error:", err);
-    return NextResponse.json(mockStory);
+  if (!craftType) {
+    return NextResponse.json({ error: "craftType is required" }, { status: 400 });
   }
+
+  const result = getCraftStory(
+    craftType ?? "Handcraft",
+    artisanName ?? "the artisan",
+    region ?? "India"
+  );
+  return NextResponse.json(result);
 }

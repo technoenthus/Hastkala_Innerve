@@ -5,15 +5,12 @@ import {
   MicOff,
   Camera,
   Calculator,
-  BookOpen,
   Loader2,
   CheckCircle,
   Upload,
   Sparkles,
-  Shield,
 } from "lucide-react";
-import CraftHeritageIdentifier from "@/components/CraftHeritageIdentifier";
-import { mockStory, mockListing } from "@/lib/gemini";
+import { mockListing } from "@/lib/gemini";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
@@ -90,14 +87,9 @@ function VoiceStoryTool() {
       });
       if (res.ok) {
         setResult(await res.json());
-      } else {
-        // Demo mode
-        await new Promise((r) => setTimeout(r, 1500));
-        setResult(mockStory);
       }
     } catch {
-      await new Promise((r) => setTimeout(r, 1500));
-      setResult(mockStory);
+      // silent fail
     }
     setLoading(false);
   }
@@ -501,105 +493,6 @@ function FairPriceTool() {
   );
 }
 
-// ─── Story Generator ─────────────────────────────────────────────
-function StoryGeneratorTool() {
-  const [form, setForm] = useState({
-    productTitle: "Sacred Fish Pair — Madhubani Painting",
-    craftType: "Madhubani",
-    artisanName: "Meera Devi",
-    artisanRegion: "Mithila, Bihar",
-    materials: "Natural pigments, handmade paper",
-    process: "Bamboo twig brushwork, natural color pigments, freehand composition",
-  });
-  const [loading, setLoading] = useState(false);
-  const [story, setStory] = useState("");
-
-  const mockProductStory = `When you hold this painting, you are holding the memory of a river you've never seen — the Kamala river that runs through Meera's village in Mithila, feeding the indigo plants that became the blue in these fish. The turmeric that became the gold. The lamp soot that became the fine, unwavering black lines.
-
-Meera painted this the morning her granddaughter was born. The fish are not decoration in Mithila — they are the first avatar of Vishnu, the soul that swims before it flies. She painted them to welcome a new soul into the world. Now they come to yours.
-
-Your purchase means Meera's granddaughter grows up watching her grandmother paint, not explain to a child why the tradition died.`;
-
-  async function generate() {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/generate-story", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, process: [form.process] }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setStory(data.story);
-      } else {
-        await new Promise((r) => setTimeout(r, 1500));
-        setStory(mockProductStory);
-      }
-    } catch {
-      await new Promise((r) => setTimeout(r, 1500));
-      setStory(mockProductStory);
-    }
-    setLoading(false);
-  }
-
-  return (
-    <div className="space-y-5">
-      <div className="grid sm:grid-cols-2 gap-4">
-        {[
-          { label: "Product Title", key: "productTitle" },
-          { label: "Craft Type", key: "craftType" },
-          { label: "Artisan Name", key: "artisanName" },
-          { label: "Artisan Region", key: "artisanRegion" },
-          { label: "Materials", key: "materials" },
-        ].map((f) => (
-          <div key={f.key} className={f.key === "productTitle" ? "sm:col-span-2" : ""}>
-            <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">
-              {f.label}
-            </label>
-            <input
-              value={form[f.key as keyof typeof form]}
-              onChange={(e) => setForm((p) => ({ ...p, [f.key]: e.target.value }))}
-              className="w-full bg-white border border-cream-dark rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-soft"
-            />
-          </div>
-        ))}
-        <div className="sm:col-span-2">
-          <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">
-            Process (brief description)
-          </label>
-          <input
-            value={form.process}
-            onChange={(e) => setForm((p) => ({ ...p, process: e.target.value }))}
-            className="w-full bg-white border border-cream-dark rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-soft"
-          />
-        </div>
-      </div>
-
-      <button
-        onClick={generate}
-        disabled={loading}
-        className="flex items-center gap-2 bg-indigo-deep text-cream px-6 py-3 rounded-full font-medium hover:bg-indigo-mid transition-colors disabled:opacity-50"
-      >
-        {loading ? <Loader2 size={16} className="animate-spin" /> : <BookOpen size={16} />}
-        {loading ? "Writing story…" : "Generate Emotional Story"}
-      </button>
-
-      {story && (
-        <div className="border-t border-cream-dark pt-6">
-          <div className="bg-indigo-deep/5 border border-indigo-deep/10 rounded-2xl p-6">
-            <p className="text-xs font-semibold text-indigo-deep uppercase tracking-wider mb-4">
-              Generated Product Story
-            </p>
-            <p className="font-serif text-lg text-indigo-deep/80 leading-relaxed whitespace-pre-line italic">
-              &ldquo;{story}&rdquo;
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── Social Media Kit Tool ───────────────────────────────────────
 const PLATFORM_COLORS: Record<string, string> = {
   "Instagram": "bg-pink-50 border-pink-200 text-pink-700",
@@ -722,9 +615,7 @@ const TOOLS = [
   { id: "voice", icon: Mic, title: "Voice to Story", subtitle: "Record · Translate · Narrate", component: VoiceStoryTool, color: "text-terra", bg: "bg-terra/10" },
   { id: "photo", icon: Camera, title: "Photo to Listing", subtitle: "Upload · Analyze · Publish", component: PhotoListingTool, color: "text-indigo-soft", bg: "bg-indigo-mid/10" },
   { id: "price", icon: Calculator, title: "Fair Price Calculator", subtitle: "Input · Calculate · Price Fairly", component: FairPriceTool, color: "text-gold-dark", bg: "bg-gold/15" },
-  { id: "story", icon: BookOpen, title: "Story Generator", subtitle: "Details · Craft · Connect", component: StoryGeneratorTool, color: "text-terra", bg: "bg-terra/10" },
   { id: "social", icon: Sparkles, title: "Social Media Kit", subtitle: "Describe · Generate · Post", component: SocialMediaKitTool, color: "text-pink-500", bg: "bg-pink-50" },
-  { id: "heritage", icon: Shield, title: "Heritage Identifier", subtitle: "Upload · Identify · Discover", component: CraftHeritageIdentifier, color: "text-indigo-deep", bg: "bg-indigo-deep/10" },
 ];
 
 export default function AIToolsPage() {
