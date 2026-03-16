@@ -1,5 +1,6 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Mic,
   MicOff,
@@ -36,7 +37,7 @@ declare global {
 }
 
 // ─── Voice Story Tool ───────────────────────────────────────────
-function VoiceStoryTool() {
+function VoiceStoryTool({ from, router }: { from?: string; router: any }) {
   const [transcript, setTranscript] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -182,6 +183,17 @@ function VoiceStoryTool() {
               {result.craftStory}
             </p>
           </div>
+          {from === 'dashboard' && (
+            <button
+              onClick={() => {
+                localStorage.setItem('aiResult', JSON.stringify(result));
+                router.push('/dashboard?tab=upload');
+              }}
+              className="w-full mt-4 bg-indigo-deep text-cream px-4 py-2 rounded-full text-sm font-medium hover:bg-indigo-mid transition-colors"
+            >
+              Use for Add Product
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -204,7 +216,7 @@ type ListingResult = {
   artisanName?: string;
 };
 
-function PhotoListingTool() {
+function PhotoListingTool({ from, router }: { from?: string; router: any }) {
   const [preview, setPreview] = useState<string | null>(null);
   const [filename, setFilename] = useState("");
   const [loading, setLoading] = useState(false);
@@ -367,6 +379,17 @@ function PhotoListingTool() {
                     <CheckCircle size={16} /> Listing confirmed!
                   </div>
                   <p className="text-sm text-green-600">Your listing details have been saved. You can now proceed to publish.</p>
+                  {from === 'dashboard' && (
+                    <button
+                      onClick={() => {
+                        localStorage.setItem('aiResult', JSON.stringify(result));
+                        router.push('/dashboard?tab=upload');
+                      }}
+                      className="w-full mt-4 bg-indigo-deep text-cream px-4 py-2 rounded-full text-sm font-medium hover:bg-indigo-mid transition-colors"
+                    >
+                      Use for Add Product
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -425,7 +448,7 @@ function PhotoListingTool() {
 }
 
 // ─── Fair Price Calculator ────────────────────────────────────────
-function FairPriceTool() {
+function FairPriceTool({ from, router }: { from?: string; router: any }) {
   const [form, setForm] = useState({
     craftType: "Madhubani Painting",
     region: "Mithila, Bihar",
@@ -451,30 +474,26 @@ function FairPriceTool() {
         body: JSON.stringify(form),
       });
       if (res.ok) {
-        setResult(await res.json());
+        const data = await res.json();
+        if (data && data.suggestedPrice) {
+          setResult(data);
+        } else {
+          throw new Error('Invalid response');
+        }
       } else {
-        await new Promise((r) => setTimeout(r, 1200));
-        const labor = form.laborHours * (form.rarity === "endangered" ? 350 : form.rarity === "rare" ? 280 : 200);
-        const premium = form.hasGITag ? form.materialCost * 0.3 : 0;
-        const sub = form.materialCost + labor + premium;
-        const fee = Math.round(sub * 0.15);
-        setResult({
-          suggestedPrice: sub + fee,
-          priceBreakdown: { materialCost: form.materialCost, laborCost: labor, craftPremium: Math.round(premium), platformFee: fee, total: sub + fee },
-          reasoning: `Based on ₹${form.rarity === "endangered" ? 350 : form.rarity === "rare" ? 280 : 200}/hour for ${form.rarity} craft skill in ${form.region}, with standard platform fees.`,
-          comparisonNote: "This price reflects fair trade standards and is competitive in the global handicraft market.",
-        });
+        throw new Error('API error');
       }
-    } catch {
-      await new Promise((r) => setTimeout(r, 1200));
-      const labor = form.laborHours * 280;
-      const sub = form.materialCost + labor;
+    } catch (error) {
+      // Fallback calculation
+      const labor = form.laborHours * (form.rarity === "endangered" ? 350 : form.rarity === "rare" ? 280 : 200);
+      const premium = form.hasGITag ? form.materialCost * 0.3 : 0;
+      const sub = form.materialCost + labor + premium;
       const fee = Math.round(sub * 0.15);
       setResult({
         suggestedPrice: sub + fee,
-        priceBreakdown: { materialCost: form.materialCost, laborCost: labor, craftPremium: 0, platformFee: fee, total: sub + fee },
-        reasoning: "Calculated using fair trade guidelines for skilled artisans.",
-        comparisonNote: "Competitively priced for the global handcraft market.",
+        priceBreakdown: { materialCost: form.materialCost, laborCost: labor, craftPremium: Math.round(premium), platformFee: fee, total: sub + fee },
+        reasoning: `Based on ₹${form.rarity === "endangered" ? 350 : form.rarity === "rare" ? 280 : 200}/hour for ${form.rarity} craft skill in ${form.region}, with standard platform fees.`,
+        comparisonNote: "This price reflects fair trade standards and is competitive in the global handicraft market.",
       });
     }
     setLoading(false);
@@ -601,6 +620,17 @@ function FairPriceTool() {
             <p className="text-sm text-ink/70 leading-relaxed">{result.reasoning}</p>
             <p className="text-xs text-gold-dark mt-2">{result.comparisonNote}</p>
           </div>
+          {from === 'dashboard' && (
+            <button
+              onClick={() => {
+                localStorage.setItem('aiResult', JSON.stringify({ price: result.suggestedPrice }));
+                router.push('/dashboard?tab=upload');
+              }}
+              className="w-full mt-4 bg-indigo-deep text-cream px-4 py-2 rounded-full text-sm font-medium hover:bg-indigo-mid transition-colors"
+            >
+              Use for Add Product
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -614,7 +644,7 @@ const PLATFORM_COLORS: Record<string, string> = {
   "Facebook": "bg-blue-50 border-blue-200 text-blue-700",
 };
 
-function SocialMediaKitTool() {
+function SocialMediaKitTool({ from, router }: { from?: string; router: any }) {
   const [form, setForm] = useState({
     productTitle: "Sacred Fish Pair — Madhubani on Handmade Paper",
     description: "A traditional Madhubani painting depicting the Matsya motif, symbol of fertility and good fortune in Mithila culture. Painted with natural pigments on handmade paper using a bamboo twig brush.",
@@ -734,8 +764,17 @@ const TOOLS = [
 ];
 
 export default function AIToolsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTool, setActiveTool] = useState("voice");
   const ActiveComp = TOOLS.find((t) => t.id === activeTool)?.component ?? VoiceStoryTool;
+
+  useEffect(() => {
+    const tool = searchParams.get('tool');
+    if (tool && TOOLS.find(t => t.id === tool)) {
+      setActiveTool(tool);
+    }
+  }, [searchParams]);
 
   return (
     <>
@@ -793,7 +832,7 @@ export default function AIToolsPage() {
                 <h2 className="font-serif text-3xl font-semibold text-indigo-deep mb-1">{t.title}</h2>
                 <p className="text-ink/50 text-sm">{t.subtitle}</p>
               </div>
-              <ActiveComp />
+              <ActiveComp from={searchParams.get('from')} router={router} />
             </div>
           );
         })}

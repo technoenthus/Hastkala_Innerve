@@ -175,14 +175,42 @@ export async function calculateFairPrice(input: {
     Return ONLY JSON:
     {
       "suggestedPrice": 0,
-      "priceBreakdown": { "materials": 0, "labor": 0, "premium": 0 },
+      "priceBreakdown": { "materialCost": 0, "laborCost": 0, "craftPremium": 0, "platformFee": 0, "total": 0 },
       "reasoning": "string",
       "comparisonNote": "string"
     }
   `;
 
-  const raw = await callGemini(prompt);
-  return cleanJSON(raw);
+  try {
+    const raw = await callGemini(prompt);
+    const result = cleanJSON(raw);
+    
+    // Fallback calculation if API fails or returns invalid JSON
+    if (result && typeof result === 'object') {
+      return result;
+    }
+  } catch (e) {
+    console.error('Gemini API error for fair price:', e);
+  }
+  
+  // Default fallback calculation
+  const labor = input.laborHours * (input.rarity === "endangered" ? 350 : input.rarity === "rare" ? 280 : 200);
+  const premium = input.hasGITag ? input.materialCost * 0.3 : 0;
+  const sub = input.materialCost + labor + premium;
+  const fee = Math.round(sub * 0.15);
+  
+  return {
+    suggestedPrice: sub + fee,
+    priceBreakdown: {
+      materialCost: input.materialCost,
+      laborCost: labor,
+      craftPremium: Math.round(premium),
+      platformFee: fee,
+      total: sub + fee,
+    },
+    reasoning: `Based on ₹${input.rarity === "endangered" ? 350 : input.rarity === "rare" ? 280 : 200}/hour for ${input.rarity} craft skill in ${input.region}, with standard platform fees.`,
+    comparisonNote: "This price reflects fair trade standards and is competitive in the global handicraft market.",
+  };
 }
 
 // --- FEATURE 3: UNIFIED STORY GENERATOR ---

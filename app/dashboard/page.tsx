@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -16,6 +17,7 @@ import {
   Settings,
   Edit,
   Trash2,
+  Camera,
 } from "lucide-react";
 import { artisans, getProductsByArtisan } from "@/lib/data";
 import Navigation from "@/components/Navigation";
@@ -38,7 +40,9 @@ const NAV_ITEMS = [
 ];
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState("overview");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || "overview");
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
@@ -50,6 +54,65 @@ export default function DashboardPage() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab) setActiveTab(tab);
+
+    const aiResult = localStorage.getItem('aiResult');
+    if (aiResult) {
+      try {
+        const data = JSON.parse(aiResult);
+        if (data.productTitle) setTitle(data.productTitle);
+        if (data.productDescription) setDescription(data.productDescription);
+        if (data.craftStory) setStory(data.craftStory);
+        if (data.price) setPrice(data.price.toString());
+        if (data.tags) setTags(data.tags.join(', '));
+        if (data.materials) setMaterial(data.materials.join(', '));
+        localStorage.removeItem('aiResult');
+      } catch (e) {
+        console.error('Error parsing aiResult', e);
+      }
+    }
+  }, [searchParams]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const previewData = e.target?.result as string;
+        setImagePreview(previewData);
+
+        // Call photo-to-listing API with filename
+        try {
+          const res = await fetch("/api/photo-to-listing", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              filename: file.name,
+            }),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data && !data.unknown) {
+              if (data.productTitle) setTitle(data.productTitle);
+              if (data.productDescription) setDescription(data.productDescription);
+              if (data.tags) setTags(data.tags.join(", "));
+              if (data.materials) setMaterial(data.materials.join(", "));
+            }
+          }
+        } catch (error) {
+          console.error("Error calling photo-to-listing API:", error);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 const handlePublish = async () => {
   if (!title || !price) {
     alert("Please fill title and price");
@@ -409,49 +472,98 @@ const handleUpdate = async () => {
               </div>
 
               {/* Photo upload */}
-              <div className="bg-white border-2 border-dashed border-cream-dark rounded-2xl p-8 text-center cursor-pointer hover:border-indigo-soft transition-colors">
-                <Upload size={32} className="mx-auto text-indigo-deep/20 mb-3" />
-                <p className="font-medium text-indigo-deep mb-1">Upload craft photo</p>
-                <p className="text-sm text-ink/40">JPG, PNG, WEBP · Max 10MB</p>
-                <button className="mt-4 inline-flex items-center gap-2 bg-indigo-deep text-cream px-5 py-2.5 rounded-full text-sm font-medium hover:bg-indigo-mid transition-colors">
-                  <Upload size={14} /> Choose File
-                </button>
+              <div className="bg-white border-2 border-dashed border-cream-dark rounded-2xl p-8 text-center cursor-pointer hover:border-indigo-soft transition-colors relative">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleFileChange}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                />
+                {imagePreview ? (
+                  <div className="space-y-4">
+                    <div className="relative w-24 h-24 mx-auto rounded-xl overflow-hidden">
+                      <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+                    </div>
+                    <p className="font-medium text-indigo-deep">Photo selected</p>
+                    <p className="text-sm text-ink/40">Click to change</p>
+                  </div>
+                ) : (
+                  <>
+                    <Upload size={32} className="mx-auto text-indigo-deep/20 mb-3" />
+                    <p className="font-medium text-indigo-deep mb-1">Upload craft photo</p>
+                    <p className="text-sm text-ink/40">JPG, PNG, WEBP · Max 10MB</p>
+                    <button className="mt-4 inline-flex items-center gap-2 bg-indigo-deep text-cream px-5 py-2.5 rounded-full text-sm font-medium hover:bg-indigo-mid transition-colors">
+                      <Upload size={14} /> Choose File
+                    </button>
+                  </>
+                )}
               </div>
 
               {/* Form fields */}
               <div className="space-y-4">
-                {[
-                  { label: "Product Title", placeholder: "AI will suggest based on photo…", type: "text" },
-                  { label: "Price (₹)", placeholder: "AI Fair Price Calculator can help…", type: "number" },
-                ].map((f) => (
-                  <div key={f.label}>
-                    <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">
-                      {f.label}
-                    </label>
+                <div>
+                  <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">
+                    Product Title
+                  </label>
+                  <div className="flex gap-2">
                     <input
-                      type={f.type}
-                      placeholder={f.placeholder}
-                      value={f.label === "Product Title" ? title : price}
-                      onChange={(e) =>
-                        f.label === "Product Title"
-                          ? setTitle(e.target.value)
-                          : setPrice(e.target.value)
-                      }
-                      className="w-full bg-white border border-cream-dark rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-soft"
+                      type="text"
+                      placeholder="AI will suggest based on photo…"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="flex-1 bg-white border border-cream-dark rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-soft"
                     />
+                    <button
+                      onClick={() => router.push('/ai-tools?tool=photo&from=dashboard')}
+                      className="px-3 py-3 bg-indigo-deep text-cream rounded-xl hover:bg-indigo-mid transition-colors"
+                      title="Generate from photo"
+                    >
+                      <Camera size={16} />
+                    </button>
                   </div>
-                ))}
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">
+                    Price (₹)
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      placeholder="AI Fair Price Calculator can help…"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      className="flex-1 bg-white border border-cream-dark rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-soft"
+                    />
+                    <button
+                      onClick={() => router.push('/ai-tools?tool=price&from=dashboard')}
+                      className="px-3 py-3 bg-gold text-white rounded-xl hover:bg-gold-dark transition-colors"
+                      title="Calculate fair price"
+                    >
+                      <Calculator size={16} />
+                    </button>
+                  </div>
+                </div>
 
                 <div>
                   <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">
                     Description
                   </label>
-                  <textarea
-                    rows={4}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Describe your craft… or use AI to generate from voice →"
-                  />
+                  <div className="space-y-2">
+                    <textarea
+                      rows={4}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Describe your craft… or use AI to generate from voice →"
+                      className="w-full bg-white border border-cream-dark rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-soft"
+                    />
+                    <button
+                      onClick={() => router.push('/ai-tools?tool=voice&from=dashboard')}
+                      className="flex items-center gap-2 bg-terra text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-terra-light transition-colors"
+                    >
+                      <Mic size={14} /> Use Voice to Story
+                    </button>
+                  </div>
                 </div>
 
                 <div>
@@ -512,7 +624,10 @@ const handleUpdate = async () => {
 
                 <div className="flex gap-3">
                   {!editingProduct && (
-                    <button className="flex items-center gap-2 bg-indigo-deep text-cream px-5 py-3 rounded-full text-sm font-medium hover:bg-indigo-mid transition-colors">
+                    <button 
+                      onClick={() => router.push('/ai-tools?tool=photo&from=dashboard')}
+                      className="flex items-center gap-2 bg-indigo-deep text-cream px-5 py-3 rounded-full text-sm font-medium hover:bg-indigo-mid transition-colors"
+                    >
                       <Sparkles size={14} /> AI Generate Listing
                     </button>
                   )}
@@ -548,7 +663,7 @@ const handleUpdate = async () => {
                 <p className="text-xs text-ink/40">
                   Need to set a price?{" "}
                   <button
-                    onClick={() => setActiveTab("ai")}
+                    onClick={() => router.push('/ai-tools?tool=price&from=dashboard')}
                     className="text-terra underline"
                   >
                     Use Fair Price AI →
