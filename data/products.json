@@ -1,0 +1,52 @@
+[
+  {
+    "id": "product-1",
+    "artisanId": "meera-devi",
+    "title": "madhubani krishna painting",
+    "description": "the painting depicts lord krishna grazing his cows with his friends. while the cows feed he sits under the tree playing music from his flute. the painting is done in madhubani style.",
+    "story": "Dummy story",
+    "price": 4800,
+    "category": "Test",
+    "material": "Test Material",
+    "region": "Mithila",
+    "craftType": "Madhubani Painting",
+    "images": [
+      "https://via.placeholder.com/150"
+    ],
+    "tags": [
+      "dummy"
+    ],
+    "laborHours": 5,
+    "inStock": true,
+    "featured": false,
+    "process": [
+      "Step 1",
+      "Step 2"
+    ]
+  },
+  {
+    "id": "product-2",
+    "artisanId": "meera-devi",
+    "title": "madhubani painting ",
+    "description": "The painting depicts lord krishna feeding his cows and calves. The painting is done in traditional Madhubani art style. ",
+    "story": "Dummy story",
+    "price": 4800,
+    "category": "Test",
+    "material": "Test Material",
+    "region": "Mithila",
+    "craftType": "Madhubani Painting",
+    "images": [
+      "https://via.placeholder.com/150"
+    ],
+    "tags": [
+      "dummy"
+    ],
+    "laborHours": 5,
+    "inStock": true,
+    "featured": false,
+    "process": [
+      "Step 1",
+      "Step 2"
+    ]
+  }
+]
