@@ -16,7 +16,7 @@ export default function AuthPage() {
         <div className="absolute inset-0 bg-indigo-deep/50"></div>
 
         {/* Glass content */}
-        <div className="relative backdrop-blur-md bg-white/10 border border-white/20 rounded-3xl p-10 max-w-md text-cream">
+        <div className="relative backdrop-blur-md bg-white/10 border border-white/20 rounded-3xl p-10 max-w-md text-cream card-hover">
           <h1 className="font-serif text-4xl font-semibold mb-6">
             Share your craft with the world
           </h1>
