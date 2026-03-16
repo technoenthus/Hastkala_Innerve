@@ -53,7 +53,7 @@ export default function HomePage() {
   return (
     <>
       <Gnav />
-    <div className="pt-16">
+    <div>
       {/* ── HERO ── */}
       <section className="relative min-h-[92vh] flex items-center overflow-hidden bg-indigo-deep grain-overlay">
         {/* Background collage */}

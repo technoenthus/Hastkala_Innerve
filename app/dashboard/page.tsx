@@ -40,7 +40,7 @@ export default function DashboardPage() {
   return (
     <>
       <Navigation />
-    <div className="pt-16 min-h-screen bg-cream flex">
+    <div className="min-h-screen bg-cream flex">
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-60 bg-white border-r border-cream-dark fixed top-16 bottom-0 left-0 z-20">
         {/* Artisan profile */}
@@ -81,6 +81,15 @@ export default function DashboardPage() {
             </button>
           ))}
         </nav>
+
+        <div className="p-4 border-t border-cream-dark">
+          <Link
+            href={`/template.html`}
+            className="text-xs text-ink/40 hover:text-terra transition-colors"
+          >
+            Download portfolio ↓
+          </Link>
+        </div>
 
         <div className="p-4 border-t border-cream-dark">
           <Link

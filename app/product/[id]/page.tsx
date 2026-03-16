@@ -31,7 +31,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   return (
     <>
       <Navigation />
-    <div className="pt-16 min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream">
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-xs text-ink/40 mb-8">

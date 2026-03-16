@@ -15,7 +15,7 @@ export default function Navigation() {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 inset-x-0 z-50 bg-cream/90 backdrop-blur-md border-b border-cream-dark">
+    <nav className="relative top-0 inset-x-0 z-50 bg-cream/90 backdrop-blur-md border-b border-cream-dark">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/home" className="flex flex-col leading-none">

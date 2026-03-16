@@ -49,7 +49,7 @@ export default function ExplorePage() {
   return (
     <>
       <Navigation />
-    <div className="pt-16 min-h-screen bg-cream">
+    <div className=" min-h-screen bg-cream">
       {/* Header */}
       <div className="bg-cream-warm border-b border-cream-dark">
         <div className="max-w-7xl mx-auto px-6 py-10">

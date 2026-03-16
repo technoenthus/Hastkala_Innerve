@@ -6,7 +6,7 @@ export default function ArtisansPage() {
   return (
     <>
       <Navigation />
-    <div className="pt-16 min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream">
       <div className="bg-cream-warm border-b border-cream-dark">
         <div className="max-w-7xl mx-auto px-6 py-14">
           <p className="text-terra text-xs font-semibold tracking-widest uppercase mb-2">

@@ -37,7 +37,7 @@ export default function AboutPage() {
   return (
     <>
       <Navigation />
-    <div className="pt-16 min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream">
       {/* Hero */}
       <section className="relative overflow-hidden bg-indigo-deep text-cream py-24 px-6">
         <div className="absolute inset-0 opacity-15">

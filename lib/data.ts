@@ -127,12 +127,32 @@ export const SKILL_TUTORIALS: Tutorial[] = [
     description: "Clay preparation and shaping techniques.",
     link: "https://example.com",
   },
+  {
+    title: "Combining Natural Dyes",
+    description: "Learn to create unique color palettes using natural materials.",
+    link: "https://example.com",
+  },
+  {
+    title: "Crochet for toy creations and basic structures",
+    description: "Learn the fundamentals of crochet for creating toys and simple structures.",
+    link: "https://example.com",
+  },
 ];
 
 export const MARKETING_TUTORIALS: Tutorial[] = [
   {
     title: "Pricing Handmade Products",
     description: "Fair pricing strategies for artisans.",
+    link: "https://example.com",
+  },
+  {
+    title: "Digital Marketing 101",
+    description: "Learn how to levarage digital platforms for matcketing in a short crash course.",
+    link: "https://example.com",
+  },
+  {
+    title: "Social Media for Artisans",
+    description: "Create engaging content and grow your audience.",
     link: "https://example.com",
   },
 ];

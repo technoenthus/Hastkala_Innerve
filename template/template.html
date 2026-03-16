@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Artisan Portfolio</title>
+
+<style>
+
+body{
+  font-family: "Georgia", serif;
+  margin:0;
+  color:#2c2c2c;
+  background:#faf8f5;
+}
+
+/* HERO */
+
+.hero{
+  height:380px;
+  background-size:cover;
+  background-position:center;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  color:white;
+}
+
+.hero-overlay{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+}
+
+.hero-content{
+  position:relative;
+}
+
+.hero h1{
+  font-size:42px;
+  margin:10px 0;
+}
+
+.hero p{
+  margin:4px 0;
+}
+
+/* PROFILE IMAGE */
+
+.profile-wrapper{
+  display:flex;
+  justify-content:center;
+  margin-top:-80px;
+}
+
+.profile-img{
+  width:160px;
+  height:160px;
+  border-radius:50%;
+  border:6px solid #c9a45c;
+  object-fit:cover;
+  box-shadow:0 10px 25px rgba(0,0,0,0.2);
+}
+
+/* BIO */
+
+.bio{
+  max-width:720px;
+  margin:40px auto;
+  text-align:center;
+  line-height:1.7;
+  padding:0 20px;
+}
+
+.bio p{
+  margin:12px 0;
+}
+
+/* DIVIDER */
+
+.divider{
+  width:80px;
+  height:2px;
+  background:#c9a45c;
+  margin:18px auto;
+}
+
+/* PRODUCTS */
+
+.products{
+  max-width:1000px;
+  margin:60px auto;
+  padding:0 20px;
+}
+
+.products h2{
+  text-align:center;
+  font-size:28px;
+  margin-bottom:40px;
+}
+
+.product-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:28px;
+}
+
+/* PRODUCT CARD */
+
+.product-card{
+  background:white;
+  border-radius:10px;
+  overflow:hidden;
+  box-shadow:0 8px 20px rgba(0,0,0,0.08);
+}
+
+.product-card img{
+  width:100%;
+  height:200px;
+  object-fit:cover;
+}
+
+.product-info{
+  padding:16px;
+}
+
+.product-info h3{
+  margin:0 0 6px 0;
+  font-size:18px;
+}
+
+.product-info p{
+  font-size:14px;
+  color:#555;
+  line-height:1.5;
+}
+
+/* FOOTER */
+
+.footer{
+  text-align:center;
+  font-size:12px;
+  color:#777;
+  margin-top:40px;
+}
+
+</style>
+</head>
+
+<body>
+
+
+<!-- HERO -->
+<section class="hero"
+style="background-image:url('https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=1200&h=600&fit=crop');">
+
+<div class="hero-overlay"></div>
+
+<div class="hero-content">
+
+<p style="letter-spacing:3px;font-size:12px;">ARTISAN</p>
+
+<h1>{{name}}</h1>
+
+<p style="font-size:20px;">{{craft}}</p>
+
+<p style="font-size:14px;opacity:0.85;">{{location}}</p>
+
+</div>
+
+</section>
+
+
+
+<!-- PROFILE IMAGE -->
+<div class="profile-wrapper">
+<img src="{{image}}" class="profile-img" alt="{{name}}">
+</div>
+
+
+
+<!-- BIO -->
+<section class="bio">
+
+<p style="font-size:18px;">
+Traditional artisan preserving generational craft heritage.
+</p>
+
+<div class="divider"></div>
+
+<p>
+{{bio}}
+</p>
+
+<p style="margin-top:18px;font-size:14px;color:#666;">
+{{experience}} years of experience
+</p>
+
+</section>
+
+
+
+<!-- PRODUCTS -->
+
+<section class="products">
+
+<h2>Artisan Creations</h2>
+
+<div class="product-grid">
+
+{{products}}
+
+</div>
+
+</section>
+
+
+
+<div class="footer">
+Generated Artisan Portfolio
+</div>
+
+</body>
+</html>
