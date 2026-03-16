@@ -14,6 +14,8 @@ import {
   Sparkles,
   LayoutGrid,
   Settings,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import { artisans, getProductsByArtisan } from "@/lib/data";
 import Navigation from "@/components/Navigation";
@@ -45,7 +47,9 @@ export default function DashboardPage() {
   const [tags, setTags] = useState("");
   const [story, setStory] = useState("");
   const [steps, setSteps] = useState("");
-
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [productToDelete, setProductToDelete] = useState(null);
 const handlePublish = async () => {
   if (!title || !price) {
     alert("Please fill title and price");
@@ -78,6 +82,84 @@ const handlePublish = async () => {
     window.location.reload();
   } else {
     alert("Error adding product");
+  }
+};
+
+const handleEdit = (product) => {
+  setEditingProduct(product);
+  setTitle(product.title);
+  setPrice(product.price.toString());
+  setDescription(product.description);
+  setMaterial(product.material);
+  setTags(product.tags.join(", "));
+  setStory(product.story);
+  setSteps(product.process.join("\n"));
+  setActiveTab("upload");
+};
+
+const handleDelete = async (productId) => {
+  setLoading(true);
+  
+  const res = await fetch("/api/delete-product", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ productId }),
+  });
+
+  setLoading(false);
+  setShowDeleteConfirm(false);
+  setProductToDelete(null);
+
+  if (res.ok) {
+    alert("Product deleted successfully!");
+    window.location.reload();
+  } else {
+    alert("Error deleting product");
+  }
+};
+
+const handleUpdate = async () => {
+  if (!title || !price || !editingProduct) {
+    alert("Please fill all required fields");
+    return;
+  }
+
+  setLoading(true);
+
+  const res = await fetch("/api/edit-product", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      productId: editingProduct.id,
+      title,
+      price: Number(price),
+      description,
+      material,
+      story,
+      tags: tags.split(",").map((t) => t.trim()),
+      process: steps.split("\n"),
+    }),
+  });
+
+  setLoading(false);
+
+  if (res.ok) {
+    alert("Product updated successfully!");
+    setEditingProduct(null);
+    setTitle("");
+    setPrice("");
+    setDescription("");
+    setMaterial("");
+    setTags("");
+    setStory("");
+    setSteps("");
+    window.location.reload();
+  } else {
+    alert("Error updating product");
   }
 };
 
@@ -287,6 +369,23 @@ const handlePublish = async () => {
                       >
                         <Eye size={14} />
                       </Link>
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="ml-2 text-ink/20 hover:text-indigo-deep transition-colors"
+                        title="Edit product"
+                      >
+                        <Edit size={14} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setProductToDelete(product);
+                          setShowDeleteConfirm(true);
+                        }}
+                        className="ml-2 text-ink/20 hover:text-red-500 transition-colors"
+                        title="Delete product"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -299,10 +398,13 @@ const handlePublish = async () => {
             <div className="max-w-2xl space-y-6">
               <div>
                 <h2 className="font-serif text-3xl font-semibold text-indigo-deep mb-1">
-                  Add New Product
+                  {editingProduct ? "Edit Product" : "Add New Product"}
                 </h2>
                 <p className="text-ink/50 text-sm">
-                  Upload a photo and let AI generate the listing for you.
+                  {editingProduct 
+                    ? "Update your product details below."
+                    : "Upload a photo and let AI generate the listing for you."
+                  }
                 </p>
               </div>
 
@@ -409,16 +511,38 @@ const handlePublish = async () => {
                 </div>
 
                 <div className="flex gap-3">
-                  <button className="flex items-center gap-2 bg-indigo-deep text-cream px-5 py-3 rounded-full text-sm font-medium hover:bg-indigo-mid transition-colors">
-                    <Sparkles size={14} /> AI Generate Listing
-                  </button>
+                  {!editingProduct && (
+                    <button className="flex items-center gap-2 bg-indigo-deep text-cream px-5 py-3 rounded-full text-sm font-medium hover:bg-indigo-mid transition-colors">
+                      <Sparkles size={14} /> AI Generate Listing
+                    </button>
+                  )}
                   <button
-                    onClick={handlePublish}
+                    onClick={editingProduct ? handleUpdate : handlePublish}
                     disabled={loading}
                     className="flex items-center gap-2 border border-indigo-deep text-indigo-deep px-5 py-3 rounded-full text-sm font-medium hover:bg-indigo-deep/5 transition-colors"
                   >
-                    {loading ? "Publishing..." : "Publish Product"}
+                    {loading 
+                      ? (editingProduct ? "Updating..." : "Publishing...") 
+                      : (editingProduct ? "Update Product" : "Publish Product")
+                    }
                   </button>
+                  {editingProduct && (
+                    <button
+                      onClick={() => {
+                        setEditingProduct(null);
+                        setTitle("");
+                        setPrice("");
+                        setDescription("");
+                        setMaterial("");
+                        setTags("");
+                        setStory("");
+                        setSteps("");
+                      }}
+                      className="flex items-center gap-2 bg-gray-100 text-gray-600 px-5 py-3 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors"
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
                 </div>
 
                 <p className="text-xs text-ink/40">
@@ -514,6 +638,38 @@ const handlePublish = async () => {
           )} */}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && productToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+            <h3 className="font-serif text-xl font-semibold text-indigo-deep mb-3">
+              Delete Product
+            </h3>
+            <p className="text-ink/60 mb-6">
+              Are you sure you want to delete "{productToDelete.title}"? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setProductToDelete(null);
+                }}
+                className="flex-1 bg-gray-100 text-gray-600 px-4 py-3 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(productToDelete.id)}
+                disabled={loading}
+                className="flex-1 bg-red-500 text-white px-4 py-3 rounded-full text-sm font-medium hover:bg-red-600 transition-colors"
+              >
+                {loading ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </>
   );
