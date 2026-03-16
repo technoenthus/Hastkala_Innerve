@@ -7,14 +7,16 @@ import {
   Package,
   Ruler,
   Tag,
-  ShoppingCart,
   ArrowLeft,
   CheckCircle,
 } from "lucide-react";
-import { products, artisans, getProductById, getProductsByArtisan } from "@/lib/data";
+import { products, artisans, getProductById, getProductsByArtisan, productSoldCounts } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
+import BuyNowButton from "@/components/BuyNowButton";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+
+export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
   return products.map((p) => ({ id: p.id }));
@@ -28,6 +30,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const relatedProducts = getProductsByArtisan(product.artisanId).filter(
     (p) => p.id !== product.id
   );
+  const soldCount = productSoldCounts[product.id] ?? 0;
 
   return (
     <>
@@ -97,6 +100,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               )}
             </div>
 
+            <p className="text-sm text-ink/50 mb-4">
+              Sold: <span className="font-semibold text-indigo-deep">{soldCount}</span>
+            </p>
+
             {/* Description */}
             <p className="text-ink/70 leading-relaxed mb-6">{product.description}</p>
 
@@ -159,10 +166,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             )}
 
             {/* CTA */}
-            <button className="w-full flex items-center justify-center gap-2 bg-indigo-deep text-cream py-4 rounded-full font-medium text-base hover:bg-indigo-mid transition-colors mb-3">
-              <ShoppingCart size={18} />
-              Add to Cart — ₹{product.price.toLocaleString("en-IN")}
-            </button>
+            <BuyNowButton productId={product.id} price={product.price} />
             <p className="text-center text-xs text-ink/40">
               Free shipping · Certificate of authenticity · 30-day returns
             </p>

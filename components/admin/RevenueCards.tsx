@@ -15,22 +15,26 @@ interface Product {
   createdAt: string;
 }
 
-interface RevenueCardsProps {
-  products: Product[];
+interface DashboardStats {
+  totalCraftsListed: number;
+  totalCraftsSold: number;
+  totalArtisanEarnings: number;
+  totalPlatformEarnings: number;
 }
 
-export default function RevenueCards({ products }: RevenueCardsProps) {
-  const totalCrafts = products.length;
+interface RevenueCardsProps {
+  products: Product[];
+  stats?: DashboardStats | null;
+}
 
-  const totalArtisanEarnings = products.reduce(
-    (sum, p) => sum + p.artisanPrice,
-    0
-  );
+export default function RevenueCards({ products, stats }: RevenueCardsProps) {
+  const totalCrafts = stats?.totalCraftsListed ?? products.length;
 
-  const totalPlatformEarnings = products.reduce(
-    (sum, p) => sum + p.platformFee,
-    0
-  );
+  const totalArtisanEarnings = stats?.totalArtisanEarnings ??
+    products.reduce((sum, p) => sum + p.artisanPrice, 0);
+
+  const totalPlatformEarnings = stats?.totalPlatformEarnings ??
+    products.reduce((sum, p) => sum + p.platformFee, 0);
 
   const totalFinalPrice = products.reduce(
     (sum, p) => sum + p.finalPrice,
@@ -42,10 +46,16 @@ export default function RevenueCards({ products }: RevenueCardsProps) {
       ? (totalPlatformEarnings / totalFinalPrice) * 100
       : 0;
 
+  const totalCraftsSold = stats?.totalCraftsSold ?? 0;
+
   const cards = [
     { label: "Total Crafts Listed", value: totalCrafts },
     {
-      label: "Total Artisan Earnings",
+      label: "Total Crafts Sold",
+      value: totalCraftsSold,
+    },
+    {
+      label: "Total Artisan Earnings (Orders)",
       value: `₹${totalArtisanEarnings.toLocaleString()}`,
     },
     {

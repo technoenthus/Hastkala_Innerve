@@ -1,4 +1,8 @@
 "use client";
+
+export const dynamic = "force-dynamic";
+
+import { useState, useEffect } from "react";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
@@ -25,11 +29,16 @@ import Navigation from "@/components/Navigation";
 const DEMO_ARTISAN = artisans[0]; // Meera Devi
 const DEMO_PRODUCTS = getProductsByArtisan(DEMO_ARTISAN.id);
 
-const STATS = [
-  { label: "Products Listed", value: DEMO_PRODUCTS.length, icon: Package, delta: "+1 this month" },
-  { label: "Total Views", value: "1,284", icon: Eye, delta: "+18% this week" },
-  { label: "Revenue (INR)", value: "₹42,600", icon: TrendingUp, delta: "+12% this month" },
-];
+type ArtisanStats = {
+  name?: string;
+  artistName?: string;
+  craft?: string;
+  craftType?: string;
+  region: string;
+  productsListed: number;
+  soldProducts: number;
+  totalEarnings: number;
+};
 
 const NAV_ITEMS = [
   { id: "overview", label: "Overview", icon: LayoutGrid },
@@ -54,6 +63,52 @@ export default function DashboardPage() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
+  const [stats, setStats] = useState<ArtisanStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  // Fetch artisan stats from API
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/admin/artisans");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          // Find artisan by name field
+          const artisanData = json.data.find(
+            (a: ArtisanStats) => a.name === DEMO_ARTISAN.name || a.artistName === DEMO_ARTISAN.name
+          );
+          setStats(artisanData || null);
+        }
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const STATS = [
+    {
+      label: "Products Listed",
+      value: stats?.productsListed ?? DEMO_PRODUCTS.length,
+      icon: Package,
+      delta: "",
+    },
+    {
+      label: "Items Sold",
+      value: stats?.soldProducts ?? 0,
+      icon: TrendingUp,
+      delta: `+₹${(stats?.totalEarnings || 0).toLocaleString("en-IN")}`,
+    },
+    {
+      label: "Revenue (INR)",
+      value: `₹${(stats?.totalEarnings ?? 0).toLocaleString("en-IN")}`,
+      icon: Eye,
+      delta: "",
+    },
+  ];
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 

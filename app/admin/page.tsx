@@ -1,6 +1,9 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useState, useEffect } from "react";
+import { artisans } from "@/lib/data";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import RevenueCards from "@/components/admin/RevenueCards";
 import RevenueCharts from "@/components/admin/RevenueCharts";
@@ -20,36 +23,60 @@ type Product = {
   createdAt: string;
 };
 
+type Order = {
+  id: string;
+  productId: string;
+  craftType: string;
+  artisanName: string;
+  price: number;
+  createdAt: string;
+};
+
+type DashboardStats = {
+  totalCraftsListed: number;
+  totalCraftsSold: number;
+  totalArtisanEarnings: number;
+  totalPlatformEarnings: number;
+};
+
 /* ============================================ */
 /* MAIN ADMIN DASHBOARD                         */
 /* ============================================ */
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchDashboard = async () => {
       try {
         const res = await fetch("/api/admin/products");
-        if (!res.ok) throw new Error("Failed to fetch products");
+        if (!res.ok) throw new Error("Failed to fetch dashboard data");
 
         const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          setProducts(json.data);
+        if (json.success && json.data) {
+          setProducts(Array.isArray(json.data.products) ? json.data.products : []);
+          setOrders(Array.isArray(json.data.orders) ? json.data.orders : []);
+          setStats(json.data.stats ?? null);
         } else {
           console.error("Invalid API response format");
           setProducts([]);
+          setOrders([]);
+          setStats(null);
         }
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("Error fetching dashboard:", error);
         setProducts([]);
+        setOrders([]);
+        setStats(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchDashboard();
   }, []);
 
   if (loading) {
@@ -92,12 +119,12 @@ export default function AdminDashboard() {
 
               {/* Revenue Cards */}
               <div className="lg:col-span-3">
-                <RevenueCards products={products} />
+                <RevenueCards products={products} stats={stats} />
               </div>
 
               {/* Charts */}
               <div className="lg:col-span-2">
-                <RevenueCharts products={products} />
+                <RevenueCharts orders={orders} />
               </div>
 
               {/* AI Tool Usage */}

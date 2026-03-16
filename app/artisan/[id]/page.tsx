@@ -6,6 +6,8 @@ import { artisans, getProductsByArtisan } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
 import Navigation from "@/components/Navigation";
 
+export const dynamic = "force-dynamic";
+
 export async function generateStaticParams() {
   return artisans.map((a) => ({ id: a.id }));
 }
@@ -96,6 +98,24 @@ export default function ArtisanPage({ params }: { params: { id: string } }) {
                   <p className="text-xs text-ink/50">Based in</p>
                   <p className="font-semibold text-indigo-deep">
                     {artisan.region}, {artisan.state}
+                  </p>
+                </div>
+              </div>
+              <div className="border-t border-cream-dark pt-3 flex items-center gap-3">
+                <div className="w-4 h-4 bg-green-500 rounded-full" />
+                <div>
+                  <p className="text-xs text-ink/50">Items Sold</p>
+                  <p className="font-semibold text-indigo-deep">
+                    {artisan.soldProducts}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 bg-terra rounded-full" />
+                <div>
+                  <p className="text-xs text-ink/50">Total Earnings</p>
+                  <p className="font-semibold text-indigo-deep">
+                    ₹{artisan.totalEarnings.toLocaleString("en-IN")}
                   </p>
                 </div>
               </div>

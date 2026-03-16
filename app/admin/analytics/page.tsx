@@ -18,47 +18,55 @@ import {
   Cell,
 } from "recharts";
 
-type Product = {
+type Order = {
   id: string;
-  productTitle: string;
+  productId: string;
   craftType: string;
   artisanName: string;
-  artisanRegion: string;
-  artisanPrice: number;
-  platformFee: number;
-  finalPrice: number;
-  aiToolsUsed: string[];
+  price: number;
   createdAt: string;
+  aiToolsUsed: string[];
+};
+
+type DashboardStats = {
+  totalCraftsListed: number;
+  totalCraftsSold: number;
+  totalArtisanEarnings: number;
+  totalPlatformEarnings: number;
 };
 
 const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7c7c", "#8dd1e1"];
 
 export default function AnalyticsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchAnalytics = async () => {
       try {
         const res = await fetch("/api/admin/products");
-        if (!res.ok) throw new Error("Failed to fetch products");
+        if (!res.ok) throw new Error("Failed to fetch analytics data");
 
         const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          setProducts(json.data);
+        if (json.success && json.data) {
+          setOrders(Array.isArray(json.data.orders) ? json.data.orders : []);
+          setStats(json.data.stats ?? null);
         } else {
           console.error("Invalid API response format");
-          setProducts([]);
+          setOrders([]);
+          setStats(null);
         }
       } catch (error) {
-        console.error("Error fetching products:", error);
-        setProducts([]);
+        console.error("Error fetching analytics:", error);
+        setOrders([]);
+        setStats(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchAnalytics();
   }, []);
 
   if (loading) {
@@ -76,29 +84,33 @@ export default function AnalyticsPage() {
   const platformVsArtisan = [
     {
       name: "Earnings",
-      Artisan: products.reduce((sum, p) => sum + p.artisanPrice, 0),
-      Platform: products.reduce((sum, p) => sum + p.platformFee, 0),
+      Artisan:
+        stats?.totalArtisanEarnings ??
+        orders.reduce((sum, o) => sum + o.price * 0.8, 0),
+      Platform:
+        stats?.totalPlatformEarnings ??
+        orders.reduce((sum, o) => sum + o.price * 0.2, 0),
     },
   ];
 
-  // Revenue by Craft Category
-  const byCraft = products.reduce((acc, p) => {
-    const existing = acc.find(item => item.name === p.craftType);
+  // Revenue by Craft Category (based on orders)
+  const byCraft = orders.reduce((acc, o) => {
+    const existing = acc.find((item) => item.name === o.craftType);
     if (existing) {
-      existing.revenue += p.platformFee;
+      existing.revenue += o.price * 0.2;
     } else {
-      acc.push({ name: p.craftType, revenue: p.platformFee });
+      acc.push({ name: o.craftType, revenue: o.price * 0.2 });
     }
     return acc;
   }, [] as { name: string; revenue: number }[]);
 
-  // Revenue Trend
-  const byDate = products.reduce((acc, p) => {
-    const existing = acc.find(item => item.date === p.createdAt);
+  // Revenue Trend (based on orders)
+  const byDate = orders.reduce((acc, o) => {
+    const existing = acc.find((item) => item.date === o.createdAt);
     if (existing) {
-      existing.revenue += p.platformFee;
+      existing.revenue += o.price * 0.2;
     } else {
-      acc.push({ date: p.createdAt, revenue: p.platformFee });
+      acc.push({ date: o.createdAt, revenue: o.price * 0.2 });
     }
     return acc;
   }, [] as { date: string; revenue: number }[]);
@@ -107,10 +119,10 @@ export default function AnalyticsPage() {
     new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 
-  // AI Tool Usage
-  const toolUsage = products.reduce((acc, p) => {
-    p.aiToolsUsed.forEach(tool => {
-      const existing = acc.find(item => item.name === tool);
+  // AI Tool Usage (from orders)
+  const toolUsage = orders.reduce((acc, o) => {
+    o.aiToolsUsed.forEach((tool) => {
+      const existing = acc.find((item) => item.name === tool);
       if (existing) {
         existing.count += 1;
       } else {

@@ -14,6 +14,8 @@ export type Artisan = {
   tags: string[];
   awards?: string[];
   productIds: string[];
+  soldProducts: number;
+  totalEarnings: number;
 };
 
 export type Product = {
@@ -44,6 +46,19 @@ export type Tutorial = {
   link: string;
 };
 
+export type Order = {
+  id: string;
+  productId: string;
+  productTitle: string;
+  craftType: string;
+  artisanId: string;
+  artisanName: string;
+  price: number;
+  createdAt: string;
+};
+
+export const productSoldCounts: Record<string, number> = {};
+
 export const artisans: Artisan[] = [
   {
     id: "meera-devi",
@@ -62,6 +77,8 @@ export const artisans: Artisan[] = [
     tags: ["Madhubani", "Natural Pigments", "Bihar", "Heritage"],
     awards: ["National Award for Master Craftsperson 2019", "Shilp Guru 2021"],
     productIds: ["madhubani-fish-pair", "madhubani-tree-of-life", "madhubani-durga"],
+    soldProducts: 0,
+    totalEarnings: 0,
   },
   {
     id: "raju-kumhar",
@@ -80,6 +97,8 @@ export const artisans: Artisan[] = [
     tags: ["Blue Pottery", "Quartz", "Jaipur", "Mughal"],
     awards: ["State Award Rajasthan 2017"],
     productIds: ["blue-pottery-vase", "blue-pottery-plate-set", "blue-pottery-bowl"],
+    soldProducts: 0,
+    totalEarnings: 0,
   },
   {
     id: "lakshmi-weaver",
@@ -98,6 +117,8 @@ export const artisans: Artisan[] = [
     tags: ["Banarasi", "Silk", "Zari", "Varanasi", "GI Tag"],
     awards: ["GI Certified Weaver", "National Crafts Award 2020"],
     productIds: ["banarasi-silk-sari", "banarasi-dupatta", "banarasi-table-runner"],
+    soldProducts: 0,
+    totalEarnings: 0,
   },
   {
     id: "arjun-dhokra",
@@ -115,6 +136,8 @@ export const artisans: Artisan[] = [
       "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=1200&h=600&fit=crop",
     tags: ["Dhokra", "Lost-Wax", "Tribal", "Bastar", "Bronze"],
     productIds: ["dhokra-elephant", "dhokra-goddess", "dhokra-tribal-horse"],
+    soldProducts: 0,
+    totalEarnings: 0,
   },
 ];
 
@@ -208,4 +231,44 @@ export function getProductsByArtisan(artisanId: string) {
 
 export function getFeaturedProducts() {
   return products.filter((p) => p.featured);
+}
+
+// Order management
+export let orders: Order[] = [];
+
+export function createOrder(productId: string, price: number, productName?: string, artisanName?: string): Order {
+  const product = getProductById(productId);
+  const artisan = artisanName 
+    ? artisans.find((a) => a.name === artisanName)
+    : artisans.find((a) => a.id === product?.artisanId);
+  
+  if (!product || !artisan) {
+    throw new Error("Product or artisan not found");
+  }
+
+  const newOrder: Order = {
+    id: `order-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    productId,
+    productTitle: productName || product.title,
+    craftType: product.craftType,
+    artisanId: artisan.id,
+    artisanName: artisan.name,
+    price,
+    createdAt: new Date().toISOString().split("T")[0],
+  };
+
+  orders.push(newOrder);
+
+  // Update artisan stats
+  artisan.soldProducts += 1;
+  artisan.totalEarnings += price;
+
+  // Update product sold counts
+  productSoldCounts[productId] = (productSoldCounts[productId] || 0) + 1;
+
+  return newOrder;
+}
+
+export function getOrders(): Order[] {
+  return orders;
 }

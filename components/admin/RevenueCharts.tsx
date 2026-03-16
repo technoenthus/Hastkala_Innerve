@@ -16,35 +16,32 @@ import {
   Cell,
 } from "recharts";
 
-type Product = {
+type Order = {
   id: string;
-  productTitle: string;
+  productId: string;
   craftType: string;
   artisanName: string;
-  artisanRegion: string;
-  artisanPrice: number;
-  platformFee: number;
-  finalPrice: number;
-  aiToolsUsed: string[];
+  price: number;
   createdAt: string;
+  aiToolsUsed: string[];
 };
 
 interface RevenueChartsProps {
-  products: Product[];
+  orders: Order[];
 }
 
 const COLORS = ["#8884d8", "#82ca9d"];
 
-export default function RevenueCharts({ products }: RevenueChartsProps) {
+export default function RevenueCharts({ orders }: RevenueChartsProps) {
 
   /* BAR CHART DATA - Grouped by Craft Type */
-  const craftRevenue = products.reduce(
-    (acc: { [key: string]: { artisan: number; platform: number } }, p) => {
-      if (!acc[p.craftType]) {
-        acc[p.craftType] = { artisan: 0, platform: 0 };
+  const craftRevenue = orders.reduce(
+    (acc: { [key: string]: { artisan: number; platform: number } }, o) => {
+      if (!acc[o.craftType]) {
+        acc[o.craftType] = { artisan: 0, platform: 0 };
       }
-      acc[p.craftType].artisan += p.artisanPrice;
-      acc[p.craftType].platform += p.platformFee;
+      acc[o.craftType].artisan += o.price * 0.8;
+      acc[o.craftType].platform += o.price * 0.2;
       return acc;
     },
     {}
@@ -57,16 +54,16 @@ export default function RevenueCharts({ products }: RevenueChartsProps) {
   }));
 
   /* LINE CHART DATA */
-  const revenueByDate = products.reduce(
-    (acc: { date: string; revenue: number }[], p) => {
-      const existing = acc.find((item) => item.date === p.createdAt);
+  const revenueByDate = orders.reduce(
+    (acc: { date: string; revenue: number }[], o) => {
+      const existing = acc.find((item) => item.date === o.createdAt);
 
       if (existing) {
-        existing.revenue += p.platformFee;
+        existing.revenue += o.price * 0.2;
       } else {
         acc.push({
-          date: p.createdAt,
-          revenue: p.platformFee,
+          date: o.createdAt,
+          revenue: o.price * 0.2,
         });
       }
 
@@ -80,8 +77,8 @@ export default function RevenueCharts({ products }: RevenueChartsProps) {
   );
 
   /* PIE CHART DATA */
-  const totalArtisan = products.reduce((sum, p) => sum + p.artisanPrice, 0);
-  const totalPlatform = products.reduce((sum, p) => sum + p.platformFee, 0);
+  const totalArtisan = orders.reduce((sum, o) => sum + o.price * 0.8, 0);
+  const totalPlatform = orders.reduce((sum, o) => sum + o.price * 0.2, 0);
 
   const pieData = [
     { name: "Artisan Earnings", value: totalArtisan },

@@ -12,6 +12,7 @@ type Product = {
   artisanPrice: number;
   platformFee: number;
   finalPrice: number;
+  soldCount: number;
   aiToolsUsed: string[];
   createdAt: string;
 };
@@ -33,8 +34,8 @@ export default function ProductsPage() {
         if (!res.ok) throw new Error("Failed to fetch products");
 
         const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          setProducts(json.data);
+        if (json.success && json.data) {
+          setProducts(Array.isArray(json.data.products) ? json.data.products : []);
         } else {
           console.error("Invalid API response format");
           setProducts([]);
@@ -100,6 +101,9 @@ export default function ProductsPage() {
                         Platform Fee
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Sold
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Final Price
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -133,6 +137,9 @@ export default function ProductsPage() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               ₹{product.platformFee}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {product.soldCount}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               ₹{product.finalPrice}

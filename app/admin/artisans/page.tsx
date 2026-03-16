@@ -1,15 +1,19 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect } from "react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type Artisan = {
-  id: string;
-  name: string;
+  name?: string;
+  artistName?: string;
+  craft?: string;
+  craftType?: string;
   region: string;
-  productCount: number;
+  productsListed: number;
+  soldProducts: number;
   totalEarnings: number;
-  craft: string;
 };
 
 export default function ArtisansPage() {
@@ -75,16 +79,19 @@ export default function ArtisansPage() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Artisan Name
+                        Artisan
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Craft
+                        Craft Type
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Region
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Number of Products
+                        Products Listed
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Items Sold
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Total Earnings
@@ -96,16 +103,19 @@ export default function ArtisansPage() {
                       artisans.map((artisan) => (
                         <tr key={artisan.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {artisan.name}
+                            {artisan.name || artisan.artistName}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {artisan.craft}
+                            {artisan.craft || artisan.craftType}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {artisan.region}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {artisan.productCount}
+                            {artisan.productsListed}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {artisan.soldProducts}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             ₹{artisan.totalEarnings.toLocaleString()}

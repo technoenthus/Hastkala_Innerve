@@ -1,18 +1,33 @@
 import { NextResponse } from "next/server";
 import { products as realProducts, artisans } from "@/lib/data";
+import fs from "fs";
+import path from "path";
 
 export const dynamic = "force-dynamic";
 
+const filePath = path.join(process.cwd(), "data", "orders.json");
+
+function readOrders() {
+  const data = fs.readFileSync(filePath, "utf8");
+  return JSON.parse(data);
+}
+
 export async function GET() {
   try {
-    // Transform real products to admin format
+    // Read orders from JSON file
+    const orders = readOrders();
+
+    // Transform real products with sold count from orders
     const transformedProducts = realProducts.map(product => {
       // Find the artisan for this product
       const artisan = artisans.find(a => a.id === product.artisanId);
 
-      // Calculate pricing (assuming platform takes 10% fee)
+      // Calculate sold count from fetched orders, match by productId
+      const soldCount = orders.filter(o => o.productId === product.id).length;
+
+      // Calculate pricing (assuming platform takes 20% fee for admin, 10% for user-facing)
       const finalPrice = product.price;
-      const platformFee = Math.round(finalPrice * 0.1); // 10% platform fee
+      const platformFee = Math.round(finalPrice * 0.2); // 20% platform fee
       const artisanPrice = finalPrice - platformFee;
 
       // Generate some AI tools used (based on product features)
@@ -36,6 +51,7 @@ export async function GET() {
         artisanPrice: artisanPrice,
         platformFee: platformFee,
         finalPrice: finalPrice,
+        soldCount: soldCount,
         aiToolsUsed: aiToolsUsed.length > 0 ? aiToolsUsed : ["story_generator"], // fallback
         createdAt: new Date().toISOString().split('T')[0], // Use today's date as createdAt
       };
