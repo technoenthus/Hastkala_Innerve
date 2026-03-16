@@ -68,6 +68,14 @@ export default function AuthPage() {
               Login
             </Link>
 
+            {/* Login */}
+            <Link
+              href="/admin"
+              className="mt-5 block bg-indigo-deep text-white px-6 py-3 rounded-full font-medium hover:bg-indigo-deep/80 transition-colors"
+            >
+              Login As Administrator
+            </Link>
+
             {/* Create account */}
             <p className="text-sm text-gray-500 mt-6">
               Don’t have an account?{" "}
