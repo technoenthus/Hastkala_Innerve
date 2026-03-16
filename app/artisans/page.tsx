@@ -1,6 +1,7 @@
 import { artisans } from "@/lib/data";
 import ArtisanCard from "@/components/ArtisanCard";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 export default function ArtisansPage() {
   return (
@@ -47,6 +48,7 @@ export default function ArtisansPage() {
         </div>
       </div>
     </div>
+    <Footer />
     </>
   );
 }

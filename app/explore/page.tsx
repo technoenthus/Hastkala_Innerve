@@ -4,6 +4,7 @@ import { Search, SlidersHorizontal, X } from "lucide-react";
 import { products, artisans, categories, regions, craftTypes } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 export default function ExplorePage() {
   const [search, setSearch] = useState("");
@@ -229,6 +230,7 @@ export default function ExplorePage() {
         )}
       </div>
     </div>
+    <Footer />
     </>
   );
 }

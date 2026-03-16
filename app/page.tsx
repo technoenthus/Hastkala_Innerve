@@ -5,6 +5,7 @@ import { artisans, getFeaturedProducts, products } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
 import ArtisanCard from "@/components/ArtisanCard";
 import Gnav from "@/components/Gnav";
+import Footer from "@/components/Footer";
 const AI_FEATURES = [
   {
     icon: Mic,
@@ -340,6 +341,7 @@ export default function HomePage() {
         </div>
       </section>
     </div>
+    <Footer />
     </>
   ); 
 }

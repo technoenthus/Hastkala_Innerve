@@ -15,6 +15,7 @@ import {
 import CraftHeritageIdentifier from "@/components/CraftHeritageIdentifier";
 import { mockStory, mockListing } from "@/lib/gemini";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
@@ -794,6 +795,7 @@ export default function AIToolsPage() {
 
       
     </div>
+    <Footer />
     </>
   );
 }

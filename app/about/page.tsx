@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Target, Zap, Globe, Heart } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 const IMPACT_STATS = [
   { value: "7M+", label: "Artisans in India", sub: "Most without digital access" },
@@ -198,6 +199,7 @@ export default function AboutPage() {
         </div>
       </section>
     </div>
+    <Footer />
     </>
   );
 }

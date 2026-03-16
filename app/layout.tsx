@@ -19,7 +19,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="bg-cream text-ink antialiased">
         <main>{children}</main>
-        <Footer />
       </body>
     </html>
   );

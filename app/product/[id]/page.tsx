@@ -14,6 +14,7 @@ import {
 import { products, artisans, getProductById, getProductsByArtisan } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 export async function generateStaticParams() {
   return products.map((p) => ({ id: p.id }));
@@ -247,6 +248,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         )}
       </div>
     </div>
+    <Footer />
     </>
   );
 }
