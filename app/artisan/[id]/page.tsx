@@ -19,7 +19,7 @@ export default function ArtisanPage({ params }: { params: { id: string } }) {
   return (
     <>
       <Navigation />
-    <div className="pt-16 min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream">
       {/* Cover */}
       <div className="relative h-72 md:h-96 overflow-hidden">
         <Image

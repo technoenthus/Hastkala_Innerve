@@ -40,7 +40,7 @@ export default function DashboardPage() {
   return (
     <>
       <Navigation />
-    <div className="pt-16 min-h-screen bg-cream flex">
+    <div className="min-h-screen bg-cream flex">
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-60 bg-white border-r border-cream-dark fixed top-16 bottom-0 left-0 z-20">
         {/* Artisan profile */}

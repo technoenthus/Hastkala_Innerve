@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Sparkles, BookOpen, Camera, Calculator } from "lucide-react";
+import Navigation from "@/components/Navigation";
 
 // IMPORTANT: These three files MUST exist in your /components folder
 import UnifiedStoryGenerator from "@/components/UnifiedStoryGenerator";
@@ -13,6 +14,8 @@ export default function StoryGeneratorPage() {
   const [activeTab, setActiveTab] = useState("story-generator");
 
   return (
+    <>
+      <Navigation />
     <div className="min-h-screen bg-[#FBF7F0] font-serif selection:bg-[#B85C38]/20">
       
       {/* 1. Hero Header Section */}
@@ -91,5 +94,6 @@ export default function StoryGeneratorPage() {
         </p>
       </footer>
     </div>
+    </>
   );
 }

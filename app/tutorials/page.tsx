@@ -29,7 +29,7 @@ export default function TutorialsPage() {
   return (
     <>
     <Navigation />
-    <div className="pt-16 max-w-7xl mx-auto px-6 py-16">
+    <div className="max-w-7xl mx-auto px-6 py-16">
 
       {/* Page Title */}
       <div className="text-center mb-16 pt-20 pb-9">
