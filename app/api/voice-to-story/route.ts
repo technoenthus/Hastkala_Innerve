@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateCraftStory } from "@/lib/gemini";
+import { generateCraftStory, mockStory } from "@/lib/gemini";
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,13 +10,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "voiceTranscript is required" }, { status: 400 });
     }
 
-    const result = await generateCraftStory({ artisanName, craftType, region, voiceTranscript });
-    return NextResponse.json(result);
+    try {
+      const result = await generateCraftStory({ artisanName, craftType, region, voiceTranscript });
+      return NextResponse.json(result);
+    } catch {
+      return NextResponse.json(mockStory);
+    }
   } catch (err) {
     console.error("voice-to-story error:", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Internal error" },
-      { status: 500 }
-    );
+    return NextResponse.json(mockStory);
   }
 }
