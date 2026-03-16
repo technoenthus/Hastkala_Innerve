@@ -41,6 +41,10 @@ export default function DashboardPage() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [material, setMaterial] = useState("");
+  const [tags, setTags] = useState("");
+  const [story, setStory] = useState("");
+  const [steps, setSteps] = useState("");
 
 const handlePublish = async () => {
   if (!title || !price) {
@@ -59,8 +63,11 @@ const handlePublish = async () => {
       artisanId: DEMO_ARTISAN.id,
       title,
       price: Number(price),
-      images: ["/products/placeholder.jpg"],
       description,
+      material,
+      story,
+      tags: tags.split(",").map((t) => t.trim()),
+      process: steps.split("\n"),
     }),
   });
 
@@ -342,6 +349,62 @@ const handlePublish = async () => {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Describe your craft… or use AI to generate from voice →"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">
+                    Material
+                  </label>
+                  <input
+                    type="text"
+                    value={material}
+                    onChange={(e) => setMaterial(e.target.value)}
+                    placeholder="Example: Bamboo, Cotton, Clay"
+                    className="w-full bg-white border border-cream-dark rounded-xl px-4 py-3 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">
+                    Tags (comma separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                    placeholder="decor, handmade, eco-friendly"
+                    className="w-full bg-white border border-cream-dark rounded-xl px-4 py-3 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">
+                    Craft Story
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={story}
+                    onChange={(e) => setStory(e.target.value)}
+                    placeholder="Tell the story behind this craft..."
+                    className="w-full bg-white border border-cream-dark rounded-xl px-4 py-3 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">
+                    Crafting Steps (one per line)
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={steps}
+                    onChange={(e) => setSteps(e.target.value)}
+                    placeholder={`Example:
+                Prepare the clay
+                Shape the pot
+                Dry under sunlight
+                Fire in kiln`}
+                    className="w-full bg-white border border-cream-dark rounded-xl px-4 py-3 text-sm"
                   />
                 </div>
 

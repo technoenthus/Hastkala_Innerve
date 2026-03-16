@@ -23,18 +23,18 @@ export async function POST(req: Request) {
       artisanId: body.artisanId,
       title: body.title || "Dummy Product",
       description: body.description || "This is a dummy product",
-      story: "Dummy story",
       price: body.price || 1000,
       category: "Test",
-      material: "Test Material",
       region: artisans.find((a) => a.id === body.artisanId)?.region || "Test",
       craftType: artisans.find((a) => a.id === body.artisanId)?.craft || "Test",
       images: [UNSPLASH_IMAGES[Math.floor(Math.random() * UNSPLASH_IMAGES.length)]],
-      tags: ["dummy"],
       laborHours: 5,
       inStock: true,
       featured: false,
-      process: ["Step 1", "Step 2"],
+      story: body.story || "Story coming soon",
+      material: body.material || "Unknown",
+      tags: body.tags || [],
+      process: body.process || [],
     };
 
     productList.push(newProduct);
