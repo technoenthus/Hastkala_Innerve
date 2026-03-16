@@ -4,23 +4,24 @@ import { generateEmotionalProductStory } from "@/lib/gemini";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { productTitle, craftType, artisanName, artisanRegion, materials, process } = body;
+    const { productTitle, craftType, artisanName, voiceTranscript } = body;
 
-    const story = await generateEmotionalProductStory({
-      productTitle,
-      craftType,
-      artisanName,
-      artisanRegion,
-      materials,
-      process: Array.isArray(process) ? process : [process],
+    // Check if transcript exists
+    if (!voiceTranscript) {
+      return NextResponse.json({ error: "No transcript provided" }, { status: 400 });
+    }
+
+    // Call Gemini logic
+    const result = await generateEmotionalProductStory({
+      productTitle: productTitle || "Traditional Craft",
+      craftType: craftType || "Handmade Art",
+      artisanName: artisanName || "Local Artisan",
+      voiceTranscript
     });
 
-    return NextResponse.json({ story });
-  } catch (err) {
-    console.error("generate-story error:", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Internal error" },
-      { status: 500 }
-    );
+    return NextResponse.json(result);
+  } catch (err: any) {
+    console.error("API Error:", err);
+    return NextResponse.json({ error: "Gemini failed to generate story" }, { status: 500 });
   }
 }
