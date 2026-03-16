@@ -31,8 +31,8 @@ export function generatePortfolioHTML(){
 
   const templatePath = path.join(
     process.cwd(),
-    "templates",
-    "resumeTemplate.html"
+    "template",
+    "template.html"
   );
 
   let html = fs.readFileSync(templatePath,"utf8");

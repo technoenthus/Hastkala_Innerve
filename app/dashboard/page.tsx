@@ -83,14 +83,13 @@ export default function DashboardPage() {
         </nav>
 
         <div className="p-4 border-t border-cream-dark">
-          <Link
-            href={`/template.html`}
+          <a
+            href="/api/download-portfolio"
             className="text-xs text-ink/40 hover:text-terra transition-colors"
           >
             Download portfolio ↓
-          </Link>
+          </a>
         </div>
-
         <div className="p-4 border-t border-cream-dark">
           <Link
             href={`/artisan/${DEMO_ARTISAN.id}`}
