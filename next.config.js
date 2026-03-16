@@ -5,7 +5,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'plus.unsplash.com' },
     ],
-    domains: ["via.placeholder.com"],
+    domains: ["via.placeholder.com", "source.unsplash.com"]
   },
 };
 

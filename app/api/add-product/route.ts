@@ -11,6 +11,12 @@ export async function POST(req: Request) {
 
     const fileData = fs.readFileSync(dataFile, "utf8");
     const productList = JSON.parse(fileData);
+    const UNSPLASH_IMAGES = [
+    "https://images.unsplash.com/photo-1604871000636-074fa5117945?w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=800&auto=format&fit=crop"
+    ];
 
     const newProduct: Product = {
       id: `product-${productList.length + 1}`,
@@ -23,7 +29,7 @@ export async function POST(req: Request) {
       material: "Test Material",
       region: artisans.find((a) => a.id === body.artisanId)?.region || "Test",
       craftType: artisans.find((a) => a.id === body.artisanId)?.craft || "Test",
-      images: ["https://via.placeholder.com/150"],
+      images: [UNSPLASH_IMAGES[Math.floor(Math.random() * UNSPLASH_IMAGES.length)]],
       tags: ["dummy"],
       laborHours: 5,
       inStock: true,
