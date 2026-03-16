@@ -1,25 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateListingFromPhoto } from "@/lib/gemini";
+import { SAMPLE_LISTINGS, getSampleByCraftType } from "@/lib/sample-listings-db";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { imageBase64, mimeType, artisanRegion, craftType } = body;
+    const { filename, craftType } = body;
 
-    if (!imageBase64 || !mimeType) {
-      return NextResponse.json(
-        { error: "imageBase64 and mimeType are required" },
-        { status: 400 }
+    // Try match by filename
+    if (filename) {
+      const nameWithoutExt = filename.replace(/\.(jpg|jpeg|png|webp)$/i, "").toLowerCase();
+      const match = SAMPLE_LISTINGS.find(s =>
+        s.sampleImagePath.toLowerCase().includes(nameWithoutExt)
       );
+      if (match) return NextResponse.json({ ...match, unknown: false });
     }
 
-    const result = await generateListingFromPhoto({ imageBase64, mimeType, artisanRegion, craftType });
-    return NextResponse.json(result);
+    // Try match by craftType hint
+    if (craftType) {
+      const match = getSampleByCraftType(craftType);
+      if (match) return NextResponse.json({ ...match, unknown: false });
+    }
+
+    return NextResponse.json({ unknown: true });
   } catch (err) {
     console.error("photo-to-listing error:", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Internal error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

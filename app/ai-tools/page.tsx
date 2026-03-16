@@ -10,7 +10,7 @@ import {
   Upload,
   Sparkles,
 } from "lucide-react";
-import { mockListing } from "@/lib/gemini";
+
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
@@ -189,13 +189,36 @@ function VoiceStoryTool() {
 }
 
 // ─── Photo Listing Tool ──────────────────────────────────────────
+type ListingResult = {
+  unknown?: boolean;
+  craftType?: string;
+  productTitle?: string;
+  productDescription?: string;
+  tags?: string[];
+  materials?: string[];
+  seoKeywords?: string[];
+  priceRange?: string;
+  careInstructions?: string;
+  shippingNote?: string;
+  region?: string;
+  artisanName?: string;
+};
+
 function PhotoListingTool() {
   const [preview, setPreview] = useState<string | null>(null);
+  const [filename, setFilename] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<typeof mockListing | null>(null);
+  const [result, setResult] = useState<ListingResult | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
+  const [corrections, setCorrections] = useState({ craftType: "", region: "", priceRange: "" });
+  const [showCorrectionForm, setShowCorrectionForm] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function handleFile(file: File) {
+    setFilename(file.name);
+    setResult(null);
+    setConfirmed(false);
+    setShowCorrectionForm(false);
     const reader = new FileReader();
     reader.onload = (e) => setPreview(e.target?.result as string);
     reader.readAsDataURL(file);
@@ -204,23 +227,17 @@ function PhotoListingTool() {
   async function generate() {
     if (!preview) return;
     setLoading(true);
+    setConfirmed(false);
+    setShowCorrectionForm(false);
     try {
-      const base64 = preview.split(",")[1];
-      const mimeType = preview.split(";")[0].split(":")[1];
       const res = await fetch("/api/photo-to-listing", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64, mimeType }),
+        body: JSON.stringify({ filename }),
       });
-      if (res.ok) {
-        setResult(await res.json());
-      } else {
-        await new Promise((r) => setTimeout(r, 2000));
-        setResult(mockListing);
-      }
+      setResult(await res.json());
     } catch {
-      await new Promise((r) => setTimeout(r, 2000));
-      setResult(mockListing);
+      setResult({ unknown: true });
     }
     setLoading(false);
   }
@@ -231,11 +248,7 @@ function PhotoListingTool() {
       <div
         onClick={() => fileRef.current?.click()}
         onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => {
-          e.preventDefault();
-          const file = e.dataTransfer.files[0];
-          if (file) handleFile(file);
-        }}
+        onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
         className="relative border-2 border-dashed border-cream-dark rounded-2xl p-10 text-center cursor-pointer hover:border-indigo-soft transition-colors bg-white"
       >
         {preview ? (
@@ -248,63 +261,164 @@ function PhotoListingTool() {
             <p className="text-sm text-ink/40">or click to browse · JPG, PNG, WEBP</p>
           </div>
         )}
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
-        />
+        <input ref={fileRef} type="file" accept="image/*" className="hidden"
+          onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
       </div>
 
       {preview && (
-        <button
-          onClick={generate}
-          disabled={loading}
-          className="flex items-center gap-2 bg-indigo-deep text-cream px-6 py-3 rounded-full font-medium hover:bg-indigo-mid transition-colors disabled:opacity-50"
-        >
+        <button onClick={generate} disabled={loading}
+          className="flex items-center gap-2 bg-indigo-deep text-cream px-6 py-3 rounded-full font-medium hover:bg-indigo-mid transition-colors disabled:opacity-50">
           {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-          {loading ? "Analyzing photo…" : "Generate Listing with AI"}
+          {loading ? "Analyzing photo…" : "Generate Listing"}
         </button>
       )}
 
       {result && (
-        <div className="space-y-4 border-t border-cream-dark pt-6">
-          <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
-            <CheckCircle size={16} /> Listing generated
+        result.unknown ? (
+          /* ── Unknown craft ── */
+          <div className="border border-amber-200 bg-amber-50 rounded-2xl p-6 space-y-4">
+            <p className="font-semibold text-amber-800">We don't recognise this craft yet.</p>
+            <p className="text-sm text-amber-700">Please tell us more about your work so we can create the right listing for you.</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {([
+                { label: "Craft Type", key: "craftType", placeholder: "e.g. Pattachitra, Dhokra…" },
+                { label: "Region", key: "region", placeholder: "e.g. Bastar, Chhattisgarh" },
+                { label: "Expected Price Range", key: "priceRange", placeholder: "e.g. ₹500 – ₹3,000" },
+              ] as { label: string; key: keyof typeof corrections; placeholder: string }[]).map((f) => (
+                <div key={f.key}>
+                  <label className="text-xs font-semibold text-amber-800 uppercase tracking-wider block mb-1">{f.label}</label>
+                  <input value={corrections[f.key]}
+                    onChange={(e) => setCorrections(p => ({ ...p, [f.key]: e.target.value }))}
+                    placeholder={f.placeholder}
+                    className="w-full bg-white border border-amber-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-amber-400" />
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => alert("Thank you! We'll use your details to build the listing. (Connect to your save flow here.)")}
+              className="bg-amber-600 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-amber-700 transition-colors">
+              Submit Details
+            </button>
           </div>
+        ) : (
+          /* ── Known craft: two-column layout ── */
+          <div className="grid lg:grid-cols-2 gap-6 border-t border-cream-dark pt-6">
 
-          <div className="bg-white border border-cream-dark rounded-2xl p-5 space-y-4">
-            <div>
-              <p className="text-xs font-semibold text-ink/40 uppercase tracking-wider mb-1">Title</p>
-              <p className="font-serif text-xl text-indigo-deep">{result.title}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-ink/40 uppercase tracking-wider mb-1">Category</p>
-              <span className="inline-block bg-terra/10 text-terra text-sm px-3 py-1 rounded-full">
-                {result.category}
-              </span>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-ink/40 uppercase tracking-wider mb-1">Description</p>
-              <p className="text-sm text-ink/70 leading-relaxed">{result.description}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-ink/40 uppercase tracking-wider mb-2">Tags</p>
-              <div className="flex flex-wrap gap-2">
-                {(result.tags ?? []).map((tag: string) => (
-                  <span key={tag} className="text-xs bg-cream-warm border border-cream-dark text-indigo-deep px-2.5 py-1 rounded-full">
-                    {tag}
+            {/* Left: Generated listing */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
+                <CheckCircle size={16} /> Listing generated from our database
+              </div>
+
+              <div className="bg-white border border-cream-dark rounded-2xl p-5 space-y-4">
+                <div>
+                  <p className="text-xs font-semibold text-ink/40 uppercase tracking-wider mb-1">Product Title</p>
+                  <p className="font-serif text-lg text-indigo-deep">{result.productTitle}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-ink/40 uppercase tracking-wider mb-1">Craft · Region</p>
+                  <p className="text-sm text-ink/70">{result.craftType} · {result.region}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-ink/40 uppercase tracking-wider mb-1">Price Range</p>
+                  <span className="inline-block bg-green-50 border border-green-200 text-green-700 text-sm font-semibold px-3 py-1 rounded-full">
+                    {result.priceRange}
                   </span>
-                ))}
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-ink/40 uppercase tracking-wider mb-2">SEO Keywords</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(result.seoKeywords ?? []).map((k) => (
+                      <span key={k} className="text-xs bg-cream-warm border border-cream-dark text-indigo-deep px-2.5 py-1 rounded-full">{k}</span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-ink/40 uppercase tracking-wider mb-2">Tags</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(result.tags ?? []).map((t) => (
+                      <span key={t} className="text-xs bg-indigo-deep/5 text-indigo-deep px-2.5 py-1 rounded-full">{t}</span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
-            <div>
-              <p className="text-xs font-semibold text-ink/40 uppercase tracking-wider mb-1">Materials</p>
-              <p className="text-sm text-ink/60">{result.suggestedMaterials}</p>
+
+            {/* Right: Confirmation panel */}
+            <div className="space-y-4">
+              <p className="text-sm font-semibold text-indigo-deep">Does this look correct?</p>
+
+              {!confirmed && !showCorrectionForm && (
+                <div className="flex gap-3">
+                  <button onClick={() => setConfirmed(true)}
+                    className="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-green-700 transition-colors">
+                    <CheckCircle size={15} /> Yes, looks right
+                  </button>
+                  <button onClick={() => setShowCorrectionForm(true)}
+                    className="px-5 py-2.5 rounded-full text-sm font-medium border border-cream-dark text-ink/60 hover:border-terra hover:text-terra transition-colors">
+                    No, let me correct it
+                  </button>
+                </div>
+              )}
+
+              {confirmed && (
+                <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 text-green-700 font-semibold mb-1">
+                    <CheckCircle size={16} /> Listing confirmed!
+                  </div>
+                  <p className="text-sm text-green-600">Your listing details have been saved. You can now proceed to publish.</p>
+                </div>
+              )}
+
+              {showCorrectionForm && (
+                <div className="bg-white border border-cream-dark rounded-2xl p-5 space-y-4">
+                  <p className="text-sm text-ink/60">Tell us what's wrong and we'll update the listing.</p>
+                  <div className="space-y-3">
+                    {([
+                      { label: "Craft Type", key: "craftType", placeholder: result.craftType ?? "" },
+                      { label: "Region", key: "region", placeholder: result.region ?? "" },
+                      { label: "Price Range", key: "priceRange", placeholder: result.priceRange ?? "" },
+                    ] as { label: string; key: keyof typeof corrections; placeholder: string }[]).map((f) => (
+                      <div key={f.key}>
+                        <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1">{f.label}</label>
+                        <input
+                          value={corrections[f.key]}
+                          onChange={(e) => setCorrections(p => ({ ...p, [f.key]: e.target.value }))}
+                          placeholder={f.placeholder}
+                          className="w-full bg-cream-warm border border-cream-dark rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-soft" />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => { setConfirmed(true); setShowCorrectionForm(false); }}
+                      className="bg-indigo-deep text-cream px-5 py-2.5 rounded-full text-sm font-medium hover:bg-indigo-mid transition-colors">
+                      Save Corrections
+                    </button>
+                    <button onClick={() => setShowCorrectionForm(false)}
+                      className="px-5 py-2.5 rounded-full text-sm font-medium border border-cream-dark text-ink/50 hover:text-ink transition-colors">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Care & Shipping info */}
+              {!showCorrectionForm && (
+                <div className="space-y-3 mt-2">
+                  <div className="bg-cream-warm border border-cream-dark rounded-xl p-4">
+                    <p className="text-xs font-semibold text-ink/40 uppercase tracking-wider mb-1">Care Instructions</p>
+                    <p className="text-sm text-ink/60">{result.careInstructions}</p>
+                  </div>
+                  <div className="bg-cream-warm border border-cream-dark rounded-xl p-4">
+                    <p className="text-xs font-semibold text-ink/40 uppercase tracking-wider mb-1">Shipping Note</p>
+                    <p className="text-sm text-ink/60">{result.shippingNote}</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        )
       )}
     </div>
   );
@@ -612,6 +726,7 @@ function SocialMediaKitTool() {
 
 // ─── Main Page ────────────────────────────────────────────────────
 const TOOLS = [
+
   { id: "voice", icon: Mic, title: "Voice to Story", subtitle: "Record · Translate · Narrate", component: VoiceStoryTool, color: "text-terra", bg: "bg-terra/10" },
   { id: "photo", icon: Camera, title: "Photo to Listing", subtitle: "Upload · Analyze · Publish", component: PhotoListingTool, color: "text-indigo-soft", bg: "bg-indigo-mid/10" },
   { id: "price", icon: Calculator, title: "Fair Price Calculator", subtitle: "Input · Calculate · Price Fairly", component: FairPriceTool, color: "text-gold-dark", bg: "bg-gold/15" },
