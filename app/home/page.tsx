@@ -4,7 +4,8 @@ import { ArrowRight, Mic, Camera, Calculator, BookOpen, MapPin } from "lucide-re
 import { artisans, getFeaturedProducts, products } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
 import ArtisanCard from "@/components/ArtisanCard";
-import Gnav from "@/components/Gnav";
+import Navigation from "@/components/Navigation";
+
 const AI_FEATURES = [
   {
     icon: Mic,
@@ -52,8 +53,8 @@ export default function HomePage() {
 
   return (
     <>
-      <Gnav />
-    <div>
+      <Navigation />
+    <div >
       {/* ── HERO ── */}
       <section className="relative min-h-[92vh] flex items-center overflow-hidden bg-indigo-deep grain-overlay">
         {/* Background collage */}
@@ -101,12 +102,12 @@ export default function HomePage() {
                 Explore Crafts
                 <ArrowRight size={16} />
               </Link>
-              {/* <Link
+              <Link
                 href="/ai-tools"
                 className="inline-flex items-center gap-2 border border-cream/30 text-cream px-6 py-3 rounded-full font-medium hover:border-gold hover:text-gold transition-colors"
               >
                 See AI Tools
-              </Link> */}
+              </Link>
             </div>
           </div>
 
@@ -173,29 +174,29 @@ export default function HomePage() {
             AI that speaks artisan
           </h2>
           <p className="text-ink/60 max-w-xl mx-auto leading-relaxed">
-            Available for our artist members, four tools that eliminate the digital barrier between master craftspeople and the global
+            Four tools that eliminate the digital barrier between master craftspeople and the global
             market.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {AI_FEATURES.map((f) => (
-            <div
+            <Link
               key={f.title}
-              className="group p-6 bg-white rounded-2xl border border-cream-dark/50"
+              href={f.href}
+              className="group p-6 bg-white rounded-2xl border border-cream-dark/50 card-hover"
             >
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${f.color}`}>
                 <f.icon size={22} />
               </div>
-
               <h3 className="font-serif text-lg font-semibold text-indigo-deep mb-2">
                 {f.title}
               </h3>
-
-              <p className="text-sm text-ink/60 leading-relaxed">
-                {f.description}
+              <p className="text-sm text-ink/60 leading-relaxed">{f.description}</p>
+              <p className="mt-4 text-xs text-terra font-medium group-hover:underline">
+                Try it →
               </p>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
@@ -331,7 +332,7 @@ export default function HomePage() {
               description, the pricing. You focus on the making.
             </p>
             <Link
-              href="/auth"
+              href="/dashboard"
               className="inline-flex items-center gap-2 bg-terra text-cream px-6 py-3 rounded-full font-medium hover:bg-terra-light transition-colors"
             >
               Open artisan portal <ArrowRight size={16} />

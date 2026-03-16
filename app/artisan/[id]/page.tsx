@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { MapPin, Award, Clock, ArrowLeft } from "lucide-react";
 import { artisans, getProductsByArtisan } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
+import Navigation from "@/components/Navigation";
 
 export async function generateStaticParams() {
   return artisans.map((a) => ({ id: a.id }));
@@ -16,7 +17,9 @@ export default function ArtisanPage({ params }: { params: { id: string } }) {
   const artisanProducts = getProductsByArtisan(artisan.id);
 
   return (
-    <div className="pt-16 min-h-screen bg-cream">
+    <>
+      <Navigation />
+    <div className="min-h-screen bg-cream">
       {/* Cover */}
       <div className="relative h-72 md:h-96 overflow-hidden">
         <Image
@@ -160,5 +163,6 @@ export default function ArtisanPage({ params }: { params: { id: string } }) {
         </div>
       </div>
     </div>
+    </>
   );
 }

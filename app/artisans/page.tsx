@@ -1,9 +1,12 @@
 import { artisans } from "@/lib/data";
 import ArtisanCard from "@/components/ArtisanCard";
+import Navigation from "@/components/Navigation";
 
 export default function ArtisansPage() {
   return (
-    <div className="pt-16 min-h-screen bg-cream">
+    <>
+      <Navigation />
+    <div className="min-h-screen bg-cream">
       <div className="bg-cream-warm border-b border-cream-dark">
         <div className="max-w-7xl mx-auto px-6 py-14">
           <p className="text-terra text-xs font-semibold tracking-widest uppercase mb-2">
@@ -44,5 +47,6 @@ export default function ArtisansPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

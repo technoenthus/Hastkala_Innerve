@@ -16,6 +16,7 @@ import {
   Settings,
 } from "lucide-react";
 import { artisans, getProductsByArtisan } from "@/lib/data";
+import Navigation from "@/components/Navigation";
 
 const DEMO_ARTISAN = artisans[0]; // Meera Devi
 const DEMO_PRODUCTS = getProductsByArtisan(DEMO_ARTISAN.id);
@@ -37,7 +38,9 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <div className="pt-16 min-h-screen bg-cream flex">
+    <>
+      <Navigation />
+    <div className="min-h-screen bg-cream flex">
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-60 bg-white border-r border-cream-dark fixed top-16 bottom-0 left-0 z-20">
         {/* Artisan profile */}
@@ -79,6 +82,14 @@ export default function DashboardPage() {
           ))}
         </nav>
 
+        <div className="p-4 border-t border-cream-dark">
+          <a
+            href="/api/download-portfolio"
+            className="text-xs text-ink/40 hover:text-terra transition-colors"
+          >
+            Download portfolio ↓
+          </a>
+        </div>
         <div className="p-4 border-t border-cream-dark">
           <Link
             href={`/artisan/${DEMO_ARTISAN.id}`}
@@ -359,5 +370,6 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
