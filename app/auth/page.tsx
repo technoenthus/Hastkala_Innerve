@@ -34,46 +34,53 @@ export default function AuthPage() {
 
 
       {/* RIGHT PANEL — Centered login */}
-      <div className="flex items-center justify-center bg-cream-warm p-12">
-        <div className="bg-white/70 backdrop-blur-md px-10 py-14 rounded-2xl shadow-lg w-full max-w-md text-center min-h-[520px] flex flex-col justify-center">
+      <div className="flex items-center rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] justify-center bg-cream-warm p-8 -ml-20 relative z-20">
 
-          <h1 className="text-2xl font-serif font-bold mb-8 text-indigo-deep">
-            Login
-          </h1>
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)]
+        w-[100%] h-[100%] flex items-center justify-center">
 
-          {/* Email */}
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-deep"
-          />
+          {/* Inner content container */}
+          <div className="w-[60%] max-w-sm text-center">
 
-          {/* Password */}
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full mb-6 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-deep"
-          />
+            <h1 className="text-2xl font-serif font-bold mb-8 text-indigo-deep">
+              Login
+            </h1>
 
-          {/* Login */}
-          <Link
-            href="/home"
-            className=" mt-5 block text-center bg-indigo-deep text-white px-6 py-3 rounded-full font-medium hover:bg-indigo-deep-light transition-colors"
-          >
-            Login
-          </Link>
+            {/* Email */}
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-deep"
+            />
 
-          {/* Create account */}
-          <p className="text-sm text-gray-500 mt-6">
-            Don’t have an account?{" "}
-            <Link href="/home" className="text-indigo-deep font-medium hover:underline">
-              Create account
+            {/* Password */}
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full mb-6 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-deep"
+            />
+
+            {/* Login */}
+            <Link
+              href="/home"
+              className="mt-5 block bg-indigo-deep text-white px-6 py-3 rounded-full font-medium hover:bg-indigo-deep/80 transition-colors"
+            >
+              Login
             </Link>
-          </p>
+
+            {/* Create account */}
+            <p className="text-sm text-gray-500 mt-6">
+              Don’t have an account?{" "}
+              <Link href="/home" className="text-indigo-deep font-medium hover:underline">
+                Create account
+              </Link>
+            </p>
+
+          </div>
 
         </div>
-      </div>
 
+      </div>
     </div>
   );
 }
