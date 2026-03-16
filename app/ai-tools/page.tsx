@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import CraftHeritageIdentifier from "@/components/CraftHeritageIdentifier";
 import { mockStory, mockListing } from "@/lib/gemini";
+import Navigation from "@/components/Navigation";
 
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
@@ -100,34 +101,70 @@ function VoiceStoryTool() {
     setLoading(false);
   }
 
-import React, { useState } from "react";
-import { Sparkles, BookOpen, Camera, Calculator } from "lucide-react";
-import Navigation from "@/components/Navigation";
-
-// IMPORTANT: These three files MUST exist in your /components folder
-import UnifiedStoryGenerator from "@/components/UnifiedStoryGenerator";
-import PhotoToListing from "@/components/PhotoToListing";
-import FairPriceCalculator from "@/components/FairPriceCalculator";
-
-export default function StoryGeneratorPage() {
-  // Navigation strictly limited to 3 tools for a cleaner UX
-  const [activeTab, setActiveTab] = useState("story-generator");
-
   return (
-    <>
-      <Navigation />
-    <div className="min-h-screen bg-[#FBF7F0] font-serif selection:bg-[#B85C38]/20">
-      
-      {/* 1. Hero Header Section */}
-      <div className="bg-[#1A2456] text-white p-16 text-center shadow-lg relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-          <div className="absolute top-10 left-10 rotate-12 bg-white/20 w-32 h-32 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 -rotate-12 bg-[#B85C38]/40 w-48 h-48 rounded-full blur-3xl"></div>
+    <div className="space-y-6">
+      <div className="grid sm:grid-cols-3 gap-4">
+        {[
+          { label: "Artisan Name", value: artisanName, set: setArtisanName },
+          { label: "Craft Type", value: craftType, set: setCraftType },
+          { label: "Region", value: region, set: setRegion },
+        ].map((f) => (
+          <div key={f.label}>
+            <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">
+              {f.label}
+            </label>
+            <input
+              value={f.value}
+              onChange={(e) => f.set(e.target.value)}
+              className="w-full bg-white border border-cream-dark rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-soft"
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Recording area */}
+      <div className="bg-white border border-cream-dark rounded-2xl p-6">
+        <div className="flex items-center gap-4 mb-4">
+          <button
+            onClick={isRecording ? stopRecording : startRecording}
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${
+              isRecording
+                ? "bg-red-500 text-white record-pulse"
+                : "bg-terra text-white hover:bg-terra-light"
+            }`}
+          >
+            {isRecording ? <MicOff size={22} /> : <Mic size={22} />}
+          </button>
+          <div>
+            <p className="font-medium text-indigo-deep">
+              {isRecording ? "Recording… (speak naturally)" : "Click to record voice"}
+            </p>
+            <p className="text-xs text-ink/50">Hindi, Tamil, Telugu, Bengali, or English</p>
+          </div>
         </div>
 
-        <div className="relative z-10">
-          <div className="inline-block p-2 border border-white/20 rounded-full mb-6">
-             <Sparkles size={24} className="text-[#B85C38]" />
+        <textarea
+          value={transcript}
+          onChange={(e) => setTranscript(e.target.value)}
+          rows={4}
+          placeholder="Or type your description here… e.g. 'Main Madhubani painting banati hun, meri nani ne sikhaya tha…'"
+          className="w-full bg-cream-warm border border-cream-dark rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-soft resize-none"
+        />
+      </div>
+
+      <button
+        onClick={generate}
+        disabled={loading || !transcript.trim()}
+        className="flex items-center gap-2 bg-indigo-deep text-cream px-6 py-3 rounded-full font-medium hover:bg-indigo-mid transition-colors disabled:opacity-50"
+      >
+        {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+        {loading ? "Generating story…" : "Generate Story with AI"}
+      </button>
+
+      {result && (
+        <div className="space-y-4 border-t border-cream-dark pt-6">
+          <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
+            <CheckCircle size={16} /> Story generated successfully
           </div>
 
           <div className="bg-gold/5 border border-gold/20 rounded-2xl p-5">
@@ -152,27 +189,89 @@ export default function StoryGeneratorPage() {
               {result.craftStory}
             </p>
           </div>
-          <h1 className="text-5xl md:text-6xl font-light mb-4 tracking-tight">
-            AI Tools for Artisans
-          </h1>
-          <p className="opacity-70 max-w-2xl mx-auto text-lg italic">
-            Empowering the hands that preserve our history through the voice of modern AI.
-          </p>
         </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Photo Listing Tool ──────────────────────────────────────────
+function PhotoListingTool() {
+  const [preview, setPreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<typeof mockListing | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  function handleFile(file: File) {
+    const reader = new FileReader();
+    reader.onload = (e) => setPreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  async function generate() {
+    if (!preview) return;
+    setLoading(true);
+    try {
+      const base64 = preview.split(",")[1];
+      const mimeType = preview.split(";")[0].split(":")[1];
+      const res = await fetch("/api/photo-to-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64: base64, mimeType }),
+      });
+      if (res.ok) {
+        setResult(await res.json());
+      } else {
+        await new Promise((r) => setTimeout(r, 2000));
+        setResult(mockListing);
+      }
+    } catch {
+      await new Promise((r) => setTimeout(r, 2000));
+      setResult(mockListing);
+    }
+    setLoading(false);
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Upload area */}
+      <div
+        onClick={() => fileRef.current?.click()}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          const file = e.dataTransfer.files[0];
+          if (file) handleFile(file);
+        }}
+        className="relative border-2 border-dashed border-cream-dark rounded-2xl p-10 text-center cursor-pointer hover:border-indigo-soft transition-colors bg-white"
+      >
+        {preview ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={preview} alt="Preview" className="mx-auto max-h-64 rounded-xl object-contain" />
+        ) : (
+          <div>
+            <Camera size={40} className="mx-auto text-indigo-deep/20 mb-4" />
+            <p className="font-medium text-indigo-deep mb-1">Drop a craft photo here</p>
+            <p className="text-sm text-ink/40">or click to browse · JPG, PNG, WEBP</p>
+          </div>
+        )}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+        />
       </div>
 
-      {/* 2. Three-Tool Navigation Bar */}
-      <div className="flex justify-center border-b bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <button 
-          onClick={() => setActiveTab("story-generator")}
-          className={`px-8 md:px-12 py-6 flex items-center gap-3 transition-all duration-300 ${
-            activeTab === "story-generator" 
-            ? "border-b-4 border-[#B85C38] text-[#1A2456] font-bold" 
-            : "opacity-40 hover:opacity-100 text-[#1A2456]"
-          }`}
+      {preview && (
+        <button
+          onClick={generate}
+          disabled={loading}
+          className="flex items-center gap-2 bg-indigo-deep text-cream px-6 py-3 rounded-full font-medium hover:bg-indigo-mid transition-colors disabled:opacity-50"
         >
-          <BookOpen size={20} className={activeTab === "story-generator" ? "text-[#B85C38]" : ""} /> 
-          <span className="uppercase tracking-widest text-[10px] md:text-xs font-mono">Story Generator</span>
+          {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+          {loading ? "Analyzing photo…" : "Generate Listing with AI"}
         </button>
       )}
 
@@ -474,30 +573,103 @@ Your purchase means Meera's granddaughter grows up watching her grandmother pain
           />
         </div>
       </div>
-        
-        <button 
-          onClick={() => setActiveTab("photo-listing")}
-          className={`px-8 md:px-12 py-6 flex items-center gap-3 transition-all duration-300 ${
-            activeTab === "photo-listing" 
-            ? "border-b-4 border-[#B85C38] text-[#1A2456] font-bold" 
-            : "opacity-40 hover:opacity-100 text-[#1A2456]"
-          }`}
-        >
-          <Camera size={20} className={activeTab === "photo-listing" ? "text-[#B85C38]" : ""} /> 
-          <span className="uppercase tracking-widest text-[10px] md:text-xs font-mono">Photo to Listing</span>
-        </button>
 
-        <button 
-          onClick={() => setActiveTab("price-calculator")}
-          className={`px-8 md:px-12 py-6 flex items-center gap-3 transition-all duration-300 ${
-            activeTab === "price-calculator" 
-            ? "border-b-4 border-[#B85C38] text-[#1A2456] font-bold" 
-            : "opacity-40 hover:opacity-100 text-[#1A2456]"
-          }`}
-        >
-          <Calculator size={20} className={activeTab === "price-calculator" ? "text-[#B85C38]" : ""} /> 
-          <span className="uppercase tracking-widest text-[10px] md:text-xs font-mono">Fair Price</span>
-        </button>
+      <button
+        onClick={generate}
+        disabled={loading}
+        className="flex items-center gap-2 bg-indigo-deep text-cream px-6 py-3 rounded-full font-medium hover:bg-indigo-mid transition-colors disabled:opacity-50"
+      >
+        {loading ? <Loader2 size={16} className="animate-spin" /> : <BookOpen size={16} />}
+        {loading ? "Writing story…" : "Generate Emotional Story"}
+      </button>
+
+      {story && (
+        <div className="border-t border-cream-dark pt-6">
+          <div className="bg-indigo-deep/5 border border-indigo-deep/10 rounded-2xl p-6">
+            <p className="text-xs font-semibold text-indigo-deep uppercase tracking-wider mb-4">
+              Generated Product Story
+            </p>
+            <p className="font-serif text-lg text-indigo-deep/80 leading-relaxed whitespace-pre-line italic">
+              &ldquo;{story}&rdquo;
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Social Media Kit Tool ───────────────────────────────────────
+const PLATFORM_COLORS: Record<string, string> = {
+  "Instagram": "bg-pink-50 border-pink-200 text-pink-700",
+  "Instagram Reels": "bg-purple-50 border-purple-200 text-purple-700",
+  "Facebook": "bg-blue-50 border-blue-200 text-blue-700",
+};
+
+function SocialMediaKitTool() {
+  const [form, setForm] = useState({
+    productTitle: "Sacred Fish Pair — Madhubani on Handmade Paper",
+    description: "A traditional Madhubani painting depicting the Matsya motif, symbol of fertility and good fortune in Mithila culture. Painted with natural pigments on handmade paper using a bamboo twig brush.",
+    craftType: "Madhubani",
+    artisanName: "Meera Devi",
+    region: "Mithila, Bihar",
+    price: "4800",
+  });
+  const [loading, setLoading] = useState(false);
+  const [captions, setCaptions] = useState<{ platform: string; caption: string; hashtags: string[] }[]>([]);
+  const [copied, setCopied] = useState<number | null>(null);
+
+  async function generate() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/social-media-kit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, price: form.price ? Number(form.price) : undefined }),
+      });
+      const data = await res.json();
+      if (data?.captions) setCaptions(data.captions);
+    } catch {
+      // network error — do nothing
+    }
+    setLoading(false);
+  }
+
+  function copyCaption(idx: number, caption: string, hashtags: string[]) {
+    const text = `${caption}\n\n${hashtags.map((h) => `#${h}`).join(" ")}`;
+    navigator.clipboard.writeText(text);
+    setCopied(idx);
+    setTimeout(() => setCopied(null), 2000);
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid sm:grid-cols-2 gap-4">
+        {([
+          { label: "Product Title", key: "productTitle", span: true },
+          { label: "Craft Type", key: "craftType" },
+          { label: "Artisan Name", key: "artisanName" },
+          { label: "Region", key: "region" },
+          { label: "Price (₹)", key: "price" },
+        ] as { label: string; key: string; span?: boolean }[]).map((f) => (
+          <div key={f.key} className={f.span ? "sm:col-span-2" : ""}>
+            <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">{f.label}</label>
+            <input
+              value={form[f.key as keyof typeof form]}
+              onChange={(e) => setForm((p) => ({ ...p, [f.key]: e.target.value }))}
+              className="w-full bg-white border border-cream-dark rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-soft"
+            />
+          </div>
+        ))}
+        <div className="sm:col-span-2">
+          <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">Product Description</label>
+          <textarea
+            rows={3}
+            value={form.description}
+            onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+            className="w-full bg-white border border-cream-dark rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-soft resize-none"
+          />
+        </div>
       </div>
 
       <button
@@ -559,7 +731,9 @@ export default function AIToolsPage() {
   const ActiveComp = TOOLS.find((t) => t.id === activeTool)?.component ?? VoiceStoryTool;
 
   return (
-    <div className="pt-16 min-h-screen bg-cream">
+    <>
+      <Navigation />
+    <div className="min-h-screen bg-cream">
       {/* Header */}
       <div className="bg-indigo-deep text-cream py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
@@ -571,22 +745,54 @@ export default function AIToolsPage() {
             Four AI tools that eliminate the barrier between craft knowledge and digital commerce.
             Speak. Upload. Price. Sell.
           </p>
-      {/* 3. Main Content Rendering Area */}
-      <div className="max-w-6xl mx-auto p-8 md:p-16">
-        <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-2 min-h-[500px]">
-          {activeTab === "story-generator" && <UnifiedStoryGenerator />}
-          {activeTab === "photo-listing" && <PhotoToListing />}
-          {activeTab === "price-calculator" && <FairPriceCalculator />}
         </div>
       </div>
+
+      {/* Tool selector */}
+      <div className="border-b border-cream-dark bg-cream-warm sticky top-16 z-10">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="flex overflow-x-auto scrollbar-hide">
+            {TOOLS.map((t) => (
+              <button
+                key={t.id}
+                id={t.id}
+                onClick={() => setActiveTool(t.id)}
+                className={`flex items-center gap-2.5 px-5 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                  activeTool === t.id
+                    ? "border-indigo-deep text-indigo-deep"
+                    : "border-transparent text-ink/50 hover:text-ink"
+                }`}
+              >
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${t.bg} ${t.color}`}>
+                  <t.icon size={14} />
+                </div>
+                {t.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Active tool */}
+      <div className="max-w-5xl mx-auto px-6 py-10">
+        {TOOLS.map((t) => {
+          if (t.id !== activeTool) return null;
+          return (
+            <div key={t.id}>
+              <div className="mb-8">
+                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${t.bg} ${t.color} mb-3`}>
+                  <t.icon size={22} />
+                </div>
+                <h2 className="font-serif text-3xl font-semibold text-indigo-deep mb-1">{t.title}</h2>
+                <p className="text-ink/50 text-sm">{t.subtitle}</p>
+              </div>
+              <ActiveComp />
+            </div>
+          );
+        })}
+      </div>
+
       
-      {/* Subtle Branding Footer */}
-      <footer className="p-16 text-center">
-        <div className="h-px w-24 bg-[#B85C38]/20 mx-auto mb-8"></div>
-        <p className="text-stone-300 font-mono text-[10px] uppercase tracking-[0.5em]">
-          HASTAKALA AI · Preserving Lineage · India 2026
-        </p>
-      </footer>
     </div>
     </>
   );
