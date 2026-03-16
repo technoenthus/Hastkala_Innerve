@@ -22,12 +22,13 @@ async function callGemini(prompt: string, temperature = 0.85): Promise<string> {
     }),
   });
 
-    if (!response.ok) {
-      console.error("Gemini Error Details:", data);
-      throw new Error(data.error?.message || "Gemini API failure");
-    }
-
   const data = await response.json();
+
+  if (!response.ok) {
+    console.error("Gemini Error Details:", data);
+    throw new Error(data.error?.message || "Gemini API failure");
+  }
+
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 }
 
@@ -227,6 +228,16 @@ export async function generateEmotionalProductStory(input: {
         { platform: "Instagram Reels", caption: `This is what 30 years of mastery looks like. ✨ ${input.artisanName}'s ${input.craftType} work from ${input.region} — where every line is a prayer.`, hashtags: ["ArtisanIndia", "CraftRevival", "IndianArt", "Handmade", "Viral", "ReelItFeelIt", "CulturalPride", "Heritage"] },
       ],
     };
+  }
+}
+
+function cleanJSON(raw: string): any {
+  try {
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+    return JSON.parse(match[0]);
+  } catch {
+    return null;
   }
 }
 

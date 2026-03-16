@@ -5,6 +5,7 @@ import { artisans, getFeaturedProducts, products } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
 import ArtisanCard from "@/components/ArtisanCard";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 const AI_FEATURES = [
   {
@@ -341,6 +342,7 @@ export default function HomePage() {
         </div>
       </section>
     </div>
+    <Footer />
     </>
   ); 
 }

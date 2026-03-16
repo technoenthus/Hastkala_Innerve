@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BookOpen, TrendingUp } from "lucide-react";
 import { SKILL_TUTORIALS, MARKETING_TUTORIALS, Tutorial } from "@/lib/data";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 function TutorialCard({ tutorial }: { tutorial: Tutorial }) {
   return (
@@ -75,6 +76,7 @@ export default function TutorialsPage() {
       </section>
 
     </div>
+    <Footer />
     </>
   );
 }

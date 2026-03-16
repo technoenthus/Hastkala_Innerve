@@ -32,17 +32,61 @@ const NAV_ITEMS = [
   { id: "upload", label: "Add Product", icon: PlusCircle },
   { id: "ai", label: "AI Tools", icon: Sparkles },
   { id: "settings", label: "Settings", icon: Settings },
+  { id: "profile", label: "View Public Profile", icon: Eye }, 
 ];
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [title, setTitle] = useState("");
+  const [price, setPrice] = useState("");
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [material, setMaterial] = useState("");
+  const [tags, setTags] = useState("");
+  const [story, setStory] = useState("");
+  const [steps, setSteps] = useState("");
+
+const handlePublish = async () => {
+  if (!title || !price) {
+    alert("Please fill title and price");
+    return;
+  }
+
+  setLoading(true);
+
+  const res = await fetch("/api/add-product", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      artisanId: DEMO_ARTISAN.id,
+      title,
+      price: Number(price),
+      description,
+      material,
+      story,
+      tags: tags.split(",").map((t) => t.trim()),
+      process: steps.split("\n"),
+    }),
+  });
+
+  setLoading(false);
+
+  if (res.ok) {
+    alert("Product added!");
+    window.location.reload();
+  } else {
+    alert("Error adding product");
+  }
+};
 
   return (
     <>
       <Navigation />
     <div className="min-h-screen bg-cream flex">
       {/* Sidebar */}
-      <aside className="hidden md:flex flex-col w-60 bg-white border-r border-cream-dark fixed top-16 bottom-0 left-0 z-20">
+      <aside className="hidden md:flex flex-col w-72 flex-shrink-0 bg-white border-r h-auto">
         {/* Artisan profile */}
         <div className="p-5 border-b border-cream-dark">
           <div className="flex items-center gap-3">
@@ -65,8 +109,24 @@ export default function DashboardPage() {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 p-3 space-y-1">
-          {NAV_ITEMS.map((item) => (
+       <nav className="flex-1 p-3 space-y-1">
+        {NAV_ITEMS.map((item) => {
+          // For "profile", make it a direct Link instead of a button
+          if (item.id === "profile") {
+            return (
+              <Link
+                key={item.id}
+                href={`/artisan/${DEMO_ARTISAN.id}`}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-ink/60 hover:bg-cream-warm hover:text-indigo-deep transition-colors"
+              >
+                <item.icon size={16} />
+                {item.label}
+              </Link>
+            );
+          }
+
+          // Other nav items remain buttons
+          return (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
@@ -79,29 +139,22 @@ export default function DashboardPage() {
               <item.icon size={16} />
               {item.label}
             </button>
-          ))}
-        </nav>
+          );
+        })}
+      </nav>
 
-        <div className="p-4 border-t border-cream-dark">
-          <a
-            href="/api/download-portfolio"
-            className="text-xs text-ink/40 hover:text-terra transition-colors"
-          >
-            Download portfolio ↓
-          </a>
-        </div>
-        <div className="p-4 border-t border-cream-dark">
+        {/* <div className="p-4 border-t border-cream-dark">
           <Link
             href={`/artisan/${DEMO_ARTISAN.id}`}
             className="text-xs text-ink/40 hover:text-terra transition-colors"
           >
             View public profile →
           </Link>
-        </div>
+        </div> */}
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 md:ml-60">
+      <div className="flex-1">
         {/* Mobile tab bar */}
         <div className="md:hidden flex overflow-x-auto border-b border-cream-dark bg-white px-4">
           {NAV_ITEMS.map((item) => (
@@ -124,11 +177,19 @@ export default function DashboardPage() {
           {/* ── OVERVIEW ── */}
           {activeTab === "overview" && (
             <div className="space-y-8">
-              <div>
-                <h1 className="font-serif text-3xl font-semibold text-indigo-deep mb-1">
-                  Welcome back, {DEMO_ARTISAN.name.split(" ")[0]}
-                </h1>
-                <p className="text-ink/50 text-sm">Your craft is reaching the world.</p>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                <div>
+                  <h1 className="font-serif text-3xl font-semibold text-indigo-deep mb-1">
+                    Welcome back, {DEMO_ARTISAN.name.split(" ")[0]}
+                  </h1>
+                  <p className="text-ink/50 text-sm">Your craft is reaching the world.</p>
+                </div>
+                <a
+                  href="/api/download-portfolio"
+                  className="mt-3 sm:mt-0 inline-flex items-center gap-2 bg-indigo-deep text-cream px-4 py-2 rounded-full text-sm font-medium hover:bg-indigo-mid transition-colors"
+                >
+                  Download Portfolio
+                </a>
               </div>
 
               {/* Stats */}
@@ -268,6 +329,12 @@ export default function DashboardPage() {
                     <input
                       type={f.type}
                       placeholder={f.placeholder}
+                      value={f.label === "Product Title" ? title : price}
+                      onChange={(e) =>
+                        f.label === "Product Title"
+                          ? setTitle(e.target.value)
+                          : setPrice(e.target.value)
+                      }
                       className="w-full bg-white border border-cream-dark rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-soft"
                     />
                   </div>
@@ -279,8 +346,65 @@ export default function DashboardPage() {
                   </label>
                   <textarea
                     rows={4}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     placeholder="Describe your craft… or use AI to generate from voice →"
-                    className="w-full bg-white border border-cream-dark rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-soft resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">
+                    Material
+                  </label>
+                  <input
+                    type="text"
+                    value={material}
+                    onChange={(e) => setMaterial(e.target.value)}
+                    placeholder="Example: Bamboo, Cotton, Clay"
+                    className="w-full bg-white border border-cream-dark rounded-xl px-4 py-3 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">
+                    Tags (comma separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                    placeholder="decor, handmade, eco-friendly"
+                    className="w-full bg-white border border-cream-dark rounded-xl px-4 py-3 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">
+                    Craft Story
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={story}
+                    onChange={(e) => setStory(e.target.value)}
+                    placeholder="Tell the story behind this craft..."
+                    className="w-full bg-white border border-cream-dark rounded-xl px-4 py-3 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-ink/50 uppercase tracking-wider block mb-1.5">
+                    Crafting Steps (one per line)
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={steps}
+                    onChange={(e) => setSteps(e.target.value)}
+                    placeholder={`Example:
+                Prepare the clay
+                Shape the pot
+                Dry under sunlight
+                Fire in kiln`}
+                    className="w-full bg-white border border-cream-dark rounded-xl px-4 py-3 text-sm"
                   />
                 </div>
 
@@ -288,8 +412,12 @@ export default function DashboardPage() {
                   <button className="flex items-center gap-2 bg-indigo-deep text-cream px-5 py-3 rounded-full text-sm font-medium hover:bg-indigo-mid transition-colors">
                     <Sparkles size={14} /> AI Generate Listing
                   </button>
-                  <button className="flex items-center gap-2 border border-indigo-deep text-indigo-deep px-5 py-3 rounded-full text-sm font-medium hover:bg-indigo-deep/5 transition-colors">
-                    Publish Product
+                  <button
+                    onClick={handlePublish}
+                    disabled={loading}
+                    className="flex items-center gap-2 border border-indigo-deep text-indigo-deep px-5 py-3 rounded-full text-sm font-medium hover:bg-indigo-deep/5 transition-colors"
+                  >
+                    {loading ? "Publishing..." : "Publish Product"}
                   </button>
                 </div>
 
@@ -367,6 +495,23 @@ export default function DashboardPage() {
               </button>
             </div>
           )}
+          {/* ── PUBLIC PROFILE ── */}
+          {/* {activeTab === "profile" && (
+            <div className="max-w-xl text-center py-16">
+              <h2 className="font-serif text-3xl font-semibold text-indigo-deep mb-3">
+                Public Profile
+              </h2>
+              <p className="text-ink/60 mb-6">
+                You can view your public profile here or share it with others.
+              </p>
+              <Link
+                href={`/artisan/${DEMO_ARTISAN.id}`}
+                className="inline-flex items-center gap-1 text-indigo-deep font-medium hover:underline"
+              >
+                Open Public Profile →
+              </Link>
+            </div>
+          )} */}
         </div>
       </div>
     </div>
