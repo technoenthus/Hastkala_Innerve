@@ -3,7 +3,7 @@
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
 
 async function callGemini(prompt: string, temperature = 0.85): Promise<string> {
   if (!GEMINI_API_KEY) {
@@ -120,7 +120,7 @@ export async function generateListingFromPhoto(input: {
   category: string;
   suggestedMaterials: string;
 }> {
-  const VISION_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const VISION_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
   const prompt = `
 You are an expert in Indian handicrafts and artisan marketplaces.
@@ -352,11 +352,11 @@ Rules: Be authentic, avoid generic phrases. Reference the specific craft, region
 
 // --- Mock mode for demo without API key ---
 export const mockStory = {
-  productTitle: "Warli Painting by Meera Devi",
+  productTitle: "Madhubani Painting by Meera Devi",
   productDescription:
-    "A handcrafted Warli painting by Meera Devi from Mithila, Bihar. Made with care using traditional techniques passed down through generations, this piece brings the warmth and spirit of Indian folk art into your home. Each stroke is made by hand, making every painting truly one of a kind. A meaningful piece of living heritage, crafted with love and skill.",
+    "A handcrafted Madhubani painting by Meera Devi from Mithila, Bihar. Made with natural pigments on handmade paper using bamboo twig brushwork, this piece brings the warmth and spirit of Indian folk art into your home. Each stroke is made by hand, making every painting truly one of a kind.",
   craftStory:
-    "Meera Devi has been practising Warli painting in Mithila, Bihar for many years. This art form has been kept alive by artisans like Meera who learned it from their mothers and grandmothers. When you bring this painting home, you carry forward a tradition that has survived for generations.",
+    "Meera Devi has been practising Madhubani painting in Mithila, Bihar for over three decades. This art form has been kept alive by women like Meera who learned it from their mothers and grandmothers, painting on mud walls during weddings and festivals. When you bring this painting home, you carry forward a tradition that has survived for thousands of years.",
 };
 
 export const mockListing = {

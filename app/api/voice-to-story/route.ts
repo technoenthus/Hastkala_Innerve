@@ -10,12 +10,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "voiceTranscript is required" }, { status: 400 });
     }
 
-    try {
-      const result = await generateCraftStory({ artisanName, craftType, region, voiceTranscript });
-      return NextResponse.json(result);
-    } catch {
-      return NextResponse.json(mockStory);
-    }
+    const result = await generateCraftStory({ artisanName, craftType, region, voiceTranscript });
+    return NextResponse.json(result);
   } catch (err) {
     console.error("voice-to-story error:", err);
     return NextResponse.json(mockStory);
