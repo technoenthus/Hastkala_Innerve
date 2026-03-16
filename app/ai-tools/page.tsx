@@ -10,7 +10,9 @@ import {
   CheckCircle,
   Upload,
   Sparkles,
+  Shield,
 } from "lucide-react";
+import CraftHeritageIdentifier from "@/components/CraftHeritageIdentifier";
 import { mockStory, mockListing } from "@/lib/gemini";
 
 interface SpeechRecognitionEvent extends Event {
@@ -39,7 +41,7 @@ function VoiceStoryTool() {
   const [transcript, setTranscript] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<typeof mockStory | null>(null);
+  const [result, setResult] = useState<{ productTitle: string; productDescription: string; craftStory: string } | null>(null);
   const [artisanName, setArtisanName] = useState("Meera Devi");
   const [craftType, setCraftType] = useState("Madhubani Painting");
   const [region, setRegion] = useState("Mithila, Bihar");
@@ -164,13 +166,11 @@ function VoiceStoryTool() {
             <CheckCircle size={16} /> Story generated successfully
           </div>
 
-          <div className="bg-indigo-deep/5 border border-indigo-deep/10 rounded-2xl p-5">
-            <p className="text-xs font-semibold text-indigo-deep uppercase tracking-wider mb-3">
-              Craft Story
+          <div className="bg-gold/5 border border-gold/20 rounded-2xl p-5">
+            <p className="text-xs font-semibold text-gold-dark uppercase tracking-wider mb-2">
+              Product Title
             </p>
-            <p className="font-serif text-indigo-deep/80 leading-relaxed whitespace-pre-line">
-              {result.story}
-            </p>
+            <p className="font-serif text-xl text-indigo-deep font-semibold">{result.productTitle}</p>
           </div>
 
           <div className="bg-terra/5 border border-terra/15 rounded-2xl p-5">
@@ -180,11 +180,13 @@ function VoiceStoryTool() {
             <p className="text-sm text-ink/70 leading-relaxed">{result.productDescription}</p>
           </div>
 
-          <div className="bg-gold/5 border border-gold/20 rounded-2xl p-5">
-            <p className="text-xs font-semibold text-gold-dark uppercase tracking-wider mb-2">
-              Marketing Caption
+          <div className="bg-indigo-deep/5 border border-indigo-deep/10 rounded-2xl p-5">
+            <p className="text-xs font-semibold text-indigo-deep uppercase tracking-wider mb-3">
+              Craft Story
             </p>
-            <p className="text-sm text-ink/70 leading-relaxed">{result.marketingCaption}</p>
+            <p className="font-serif text-indigo-deep/80 leading-relaxed whitespace-pre-line">
+              {result.craftStory}
+            </p>
           </div>
         </div>
       )}
@@ -296,7 +298,7 @@ function PhotoListingTool() {
             <div>
               <p className="text-xs font-semibold text-ink/40 uppercase tracking-wider mb-2">Tags</p>
               <div className="flex flex-wrap gap-2">
-                {result.tags.map((tag: string) => (
+                {(result.tags ?? []).map((tag: string) => (
                   <span key={tag} className="text-xs bg-cream-warm border border-cream-dark text-indigo-deep px-2.5 py-1 rounded-full">
                     {tag}
                   </span>
@@ -720,6 +722,7 @@ const TOOLS = [
   { id: "price", icon: Calculator, title: "Fair Price Calculator", subtitle: "Input · Calculate · Price Fairly", component: FairPriceTool, color: "text-gold-dark", bg: "bg-gold/15" },
   { id: "story", icon: BookOpen, title: "Story Generator", subtitle: "Details · Craft · Connect", component: StoryGeneratorTool, color: "text-terra", bg: "bg-terra/10" },
   { id: "social", icon: Sparkles, title: "Social Media Kit", subtitle: "Describe · Generate · Post", component: SocialMediaKitTool, color: "text-pink-500", bg: "bg-pink-50" },
+  { id: "heritage", icon: Shield, title: "Heritage Identifier", subtitle: "Upload · Identify · Discover", component: CraftHeritageIdentifier, color: "text-indigo-deep", bg: "bg-indigo-deep/10" },
 ];
 
 export default function AIToolsPage() {

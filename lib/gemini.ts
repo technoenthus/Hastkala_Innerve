@@ -3,9 +3,9 @@
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
-async function callGemini(prompt: string): Promise<string> {
+async function callGemini(prompt: string, temperature = 0.85): Promise<string> {
   if (!GEMINI_API_KEY) {
     throw new Error("GEMINI_API_KEY is not set. Add it to .env.local");
   }
@@ -16,7 +16,7 @@ async function callGemini(prompt: string): Promise<string> {
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0.85,
+        temperature,
         maxOutputTokens: 1024,
       },
     }),
@@ -35,44 +35,76 @@ async function callGemini(prompt: string): Promise<string> {
 export async function generateCraftStory(input: {
   artisanName: string;
   craftType: string;
-  voiceTranscript: string; // raw transcript from artisan
+  voiceTranscript: string;
   region: string;
 }): Promise<{
-  story: string;
+  productTitle: string;
   productDescription: string;
-  marketingCaption: string;
+  craftStory: string;
 }> {
-  const prompt = `
-You are a world-class storytelling editor specializing in Indian craft culture.
+  const prompt = `You are helping a traditional artisan create a product story for an online craft marketplace.
 
-An artisan has described their work in their own words. Transform this raw description into three outputs:
+=== LOCKED ARTISAN DETAILS (do NOT change these) ===
+Artisan Name: ${input.artisanName}
+Craft Type: ${input.craftType}
+Region: ${input.region}
+=====================================================
 
-ARTISAN: ${input.artisanName}
-CRAFT TRADITION: ${input.craftType}
-REGION: ${input.region}
-ARTISAN'S OWN WORDS: "${input.voiceTranscript}"
+IMPORTANT: The craft type "${input.craftType}" is provided by the artisan and is the absolute truth.
+Do NOT replace, rename, or substitute it with any other craft name.
+Every output field must refer to "${input.craftType}" — never to any other craft.
 
-Generate exactly this JSON (no markdown, raw JSON only):
+The artisan recorded a voice message. The transcript may have speech-to-text errors.
+
+Your job:
+1. Clean and understand the transcript.
+2. If the transcript has useful content, use it to enrich the story.
+3. If the transcript is unclear, incomplete, or just greetings — do NOT invent details.
+   Instead, write a simple story using only the artisan name, craft type, and region above.
+
+Rules:
+- Tone: warm, simple, authentic. Suitable for a global online marketplace.
+- Do NOT invent techniques, history, or materials unless the artisan mentioned them.
+- Do NOT use the words "timeless", "ancient wisdom", or "mystical".
+- The craft name "${input.craftType}" must appear in productTitle and craftStory.
+
+Transcript:
+"""
+${input.voiceTranscript}
+"""
+
+Return ONLY this raw JSON (no markdown, no explanation):
 {
-  "story": "<2-3 paragraph emotional craft story, first-person, honest, rooted in place and tradition>",
-  "productDescription": "<1 paragraph professional product description, 80-120 words, for an international buyer>",
-  "marketingCaption": "<Instagram caption, 2-3 sentences, includes 5 relevant hashtags>"
-}
+  "productTitle": "<max 8 words, must include '${input.craftType}'>",
+  "productDescription": "<4-5 lines describing the handmade product, mention '${input.craftType}'>",
+  "craftStory": "<3-4 sentences about ${input.artisanName} and ${input.craftType} tradition in ${input.region}>"
+}`;
 
-Keep the artisan's voice authentic. Don't romanticize poverty. Celebrate skill and tradition.
-`;
-
-  const raw = await callGemini(prompt);
+  const raw = await callGemini(prompt, 0.4);
+  let parsed: { productTitle: string; productDescription: string; craftStory: string };
   try {
-    const cleaned = raw.replace(/```json|```/g, "").trim();
-    return JSON.parse(cleaned);
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No JSON found");
+    parsed = JSON.parse(jsonMatch[0]);
   } catch {
     return {
-      story: raw,
-      productDescription: "",
-      marketingCaption: "",
+      productTitle: `${input.craftType} by ${input.artisanName}`,
+      productDescription: raw,
+      craftStory: `${input.artisanName} is a ${input.craftType} artisan from ${input.region}.`,
     };
   }
+
+  // Validation: ensure craft type is present, correct if hallucinated
+  const craftLower = input.craftType.toLowerCase();
+  if (!parsed.productTitle.toLowerCase().includes(craftLower)) {
+    parsed.productTitle = `${input.craftType} by ${input.artisanName}`;
+  }
+  if (!parsed.craftStory.toLowerCase().includes(craftLower)) {
+    parsed.craftStory =
+      `${input.artisanName} is a ${input.craftType} artisan from ${input.region}. ` + parsed.craftStory;
+  }
+
+  return parsed;
 }
 
 // --- Feature 2: Photo to Product Listing ---
@@ -88,7 +120,7 @@ export async function generateListingFromPhoto(input: {
   category: string;
   suggestedMaterials: string;
 }> {
-  const VISION_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const VISION_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
   const prompt = `
 You are an expert in Indian handicrafts and artisan marketplaces.
@@ -320,15 +352,11 @@ Rules: Be authentic, avoid generic phrases. Reference the specific craft, region
 
 // --- Mock mode for demo without API key ---
 export const mockStory = {
-  story: `I am Meera. I learned to paint before I learned to write. My grandmother would wake before sunrise, mix her pigments from the plants that grew behind our house — the indigo vine, the turmeric root, the lamp-black from the kitchen — and by the time the sun reached the courtyard, the wall would already have gods in it.
-
-I have been painting for thirty-four years. My hands know the fish motif the way my lungs know breathing. But each painting is still a conversation. The bamboo twig tells me where it wants to go. I follow.
-
-When you buy this painting, you are not buying decoration. You are buying a conversation between my grandmother's hands and mine, stretched across fifty years and pressed into paper so it can travel to your wall.`,
+  productTitle: "Warli Painting by Meera Devi",
   productDescription:
-    "A masterwork of Madhubani painting tradition by National Award winner Meera Devi. Created using hand-ground natural pigments on handmade paper, this sacred fish pair depicts the Matsya motif — symbol of prosperity in Mithila culture. Each line is drawn freehand with a bamboo twig brush. No two paintings are identical.",
-  marketingCaption:
-    "Born from the mud walls of Mithila, now finding new walls to live on. This Matsya painting by Meera Devi carries 2,500 years of prayer in its pigments. #MadhubaniArt #IndianCraft #Handmade #ArtisanIndia #HeritageLiving",
+    "A handcrafted Warli painting by Meera Devi from Mithila, Bihar. Made with care using traditional techniques passed down through generations, this piece brings the warmth and spirit of Indian folk art into your home. Each stroke is made by hand, making every painting truly one of a kind. A meaningful piece of living heritage, crafted with love and skill.",
+  craftStory:
+    "Meera Devi has been practising Warli painting in Mithila, Bihar for many years. This art form has been kept alive by artisans like Meera who learned it from their mothers and grandmothers. When you bring this painting home, you carry forward a tradition that has survived for generations.",
 };
 
 export const mockListing = {
